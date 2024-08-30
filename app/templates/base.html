@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>{% block title %}EventMobi Tool{% endblock %}</title>
+    <link rel="stylesheet" href="https://thorben.io/tms/emhelperstyle.css">
 </head>
 <body>
     <header>
         <h1>EventMobi Tool</h1>
         <nav>
-            <a href="{{ url_for('delete_sessions_group.api_key') }}">Home</a>
+            <ul>
+                <li><a href="/delete_sessions_group/api_key">Delete Sessions in Group</a></li>
+                <li><a href="/add_people_to_group/api_key">Add People to Group by Email</a></li>
+                <li><a href="/manage_chat/api_key">Manage Chat Settings</a></li>
+            </ul>
         </nav>
     </header>
 
-    {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-            <ul class="flashes">
-            {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
+    <!-- Flash messages block -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% endwith %}
 
     <main>

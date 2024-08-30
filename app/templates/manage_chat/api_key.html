@@ -1,12 +1,10 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>Enter API Key</h1>
-<form method="POST">
+  <h2>Enter API Key</h2>
+  <form method="POST" action="{{ url_for('manage_chat.api_key') }}">
     {{ form.hidden_tag() }}
-    <p>
-        {{ form.api_key.label }}<br>
-        {{ form.api_key(size=32) }}<br>
-        {{ form.submit() }}
-    </p>
-</form>
+    {{ form.api_key.label }} {{ form.api_key(size=40) }}<br><br>
+    {{ form.submit() }}
+  </form>
 {% endblock %}
