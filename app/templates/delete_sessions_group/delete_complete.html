@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Deletion Complete</h2>
+  <p>All selected sessions have been deleted.</p>
+  <a href="{{ url_for('delete_sessions_group.select_event') }}">Delete More Sessions</a>
+{% endblock %}

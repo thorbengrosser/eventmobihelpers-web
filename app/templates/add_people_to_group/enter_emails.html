@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Enter Email Addresses</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.emails.label }}<br>
+        {{ form.emails(rows=5, cols=40) }}<br>
+        {{ form.submit() }}
+    </p>
+</form>
+{% endblock %}

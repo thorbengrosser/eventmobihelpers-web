@@ -10,10 +10,20 @@
     <header>
         <h1>EventMobi Tool</h1>
         <nav>
-            <a href="{{ url_for('main.index') }}">Home</a>
-            <!-- Add more navigation links here -->
+            <a href="{{ url_for('delete_sessions_group.api_key') }}">Home</a>
         </nav>
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
     <main>
         {% block content %}{% endblock %}
     </main>

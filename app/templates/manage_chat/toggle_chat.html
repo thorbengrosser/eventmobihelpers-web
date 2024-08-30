@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Enable or Disable Chat</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.chat_enabled.label }}<br>
+        {{ form.chat_enabled() }}<br>
+        {{ form.submit() }}
+    </p>
+</form>
+{% endblock %}

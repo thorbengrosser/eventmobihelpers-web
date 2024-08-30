@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Enter API Key</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.api_key.label }}<br>
+        {{ form.api_key(size=32) }}<br>
+        {{ form.submit() }}
+    </p>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Select Group</h1>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.group.label }}<br>
+        {{ form.group() }}<br>
+        {{ form.submit() }}
+    </p>
+</form>
+{% endblock %}
