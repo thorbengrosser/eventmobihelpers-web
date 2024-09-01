@@ -65,7 +65,7 @@ For deploying this application on a server (e.g., using Apache with mod_wsgi), f
 
 3. **Set up Apache to serve the Flask application** by configuring `mod_wsgi`. The WSGI entry point should be defined in a `wsgi.py` file:
 
-    \`\`\`python
+    ```python
     from app import create_app
 
     app = create_app()
