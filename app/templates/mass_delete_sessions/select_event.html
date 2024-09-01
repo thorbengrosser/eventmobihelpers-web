@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Select Event</h2>
+<form method="POST" action="{{ url_for('mass_delete_sessions.select_event') }}">
+    {{ form.hidden_tag() }}
+    {{ form.event.label }}<br>
+    {{ form.event }}<br><br>
+    {{ form.submit() }}
+</form>
+{% endblock %}

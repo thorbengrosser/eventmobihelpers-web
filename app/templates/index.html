@@ -11,11 +11,11 @@
         <h1>EventMobi Tool</h1>
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
                 <li><a href="/delete_sessions_group/api_key">Delete Sessions in Group</a></li>
                 <li><a href="/add_people_to_group/api_key">Add People to Group by Email</a></li>
                 <li><a href="/manage_chat/api_key">Manage Chat Settings</a></li>
-            </ul>
+                <li><a href="/mass_delete_sessions/api_key">Mass Delete Sessions</a></li>
+            </ul>  
         </nav>
     </header>
 
@@ -23,14 +23,28 @@
         <h2>Welcome to the EventMobi Helpers Web App</h2>
         <p>Please choose one of the following options to proceed:</p>
         <ul>
-            <li><a href="/delete_sessions_group/api_key">Delete Sessions in Group</a></li>
-            <li><a href="/add_people_to_group/api_key">Add People to Group by Email</a></li>
-            <li><a href="/manage_chat/api_key">Manage Chat Settings</a></li>
+            <li>
+                <a href="/delete_sessions_group/api_key">Delete Sessions in Group</a>
+                <p>This feature allows you to delete sessions associated with a specific track within an event. You can select an event and track, and all sessions linked to that track will be removed.</p>
+            </li>
+            <li>
+                <a href="/add_people_to_group/api_key">Add People to Group by Email</a>
+                <p>Use this feature to add people to a specified group based on their email addresses. You can paste a list of email addresses, and the tool will assign those users to the group you select.</p>
+            </li>
+            <li>
+                <a href="/manage_chat/api_key">Manage Chat Settings</a>
+                <p>This tool lets you enable or disable chat functionality for users in a specific group within an event. Select the event and group, and then choose whether to enable or disable chat for all members of that group.</p>
+            </li>
+            <li>
+                <a href="/mass_delete_sessions/api_key">Mass Delete Sessions</a>
+                <p>This feature allows you to delete multiple sessions by entering their session IDs. Simply select an event, paste a list of session IDs, and the tool will remove all listed sessions.</p>
+            </li>
         </ul>
     </main>
+    
 
     <footer>
-        <p>&copy; 2024 EventMobi Tool</p>
+        <p>&copy; 2024 Thorben Grosser</p>
     </footer>
 </body>
 </html>

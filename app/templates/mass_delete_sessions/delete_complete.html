@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Deletion Complete</h2>
+    <p>The session deletion process has completed successfully.</p>
+    <a href="{{ url_for('mass_delete_sessions.api_key') }}">Start Over</a>
+{% endblock %}
