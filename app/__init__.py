@@ -4,6 +4,8 @@ from .delete_sessions_group import delete_sessions_group
 from .add_people_to_group import add_people_to_group
 from .manage_chat import manage_chat
 from .mass_delete_sessions import mass_delete_sessions
+from .expert_session_editor import expert_session_editor
+
 
 
 import logging
@@ -22,6 +24,8 @@ def create_app():
     app.register_blueprint(add_people_to_group, url_prefix='/add_people_to_group')
     app.register_blueprint(manage_chat, url_prefix='/manage_chat')
     app.register_blueprint(mass_delete_sessions, url_prefix='/mass_delete_sessions')
+    app.register_blueprint(expert_session_editor, url_prefix='/expert_session_editor')
+
 
     return app
 

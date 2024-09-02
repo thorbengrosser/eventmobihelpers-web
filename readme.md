@@ -1,7 +1,6 @@
-
 # EventMobi Helpers Web App
 
-This web application provides several tools to manage EventMobi events using the EventMobi API. The available tools include deleting sessions within a specific group, adding people to groups by email, managing chat settings for people in groups, and mass deleting sessions based on a list of session IDs.
+This web application provides several tools to manage EventMobi events using the EventMobi API. The tools available include deleting sessions within a specific group, adding people to groups by email, managing chat settings for people in groups, and editing session information manually.
 
 ## Features
 
@@ -13,17 +12,18 @@ This web application provides several tools to manage EventMobi events using the
    
 3. **Manage Chat Settings**:
    - Users can enable or disable the chat feature for a group of people within an event.
-   
+
 4. **Mass Delete Sessions**:
-   - Users can delete multiple sessions by providing a list of session IDs.
+   - Allows users to delete multiple sessions by providing a list of session IDs.
+
+5. **Expert Session Editor**:
+   - Allows users to manually edit session information, including chat settings, AAQ settings, and more.
 
 ## Prerequisites
 
 - Python 3.x
 - Flask
 - Requests library
-- Flask-WTF
-- aiohttp
 
 ## Installation
 
@@ -54,6 +54,7 @@ This web application provides several tools to manage EventMobi events using the
     ```
 
 5. Open your web browser and navigate to `http://127.0.0.1:5000`.
+
 
 ## Deployment
 

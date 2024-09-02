@@ -15,9 +15,13 @@
                 <li><a href="/add_people_to_group/api_key">Add People to Group by Email</a></li>
                 <li><a href="/manage_chat/api_key">Manage Chat Settings</a></li>
                 <li><a href="/mass_delete_sessions/api_key">Mass Delete Sessions</a></li>
+                <li><a href="/expert_session_editor/api_key">Expert Session Editor</a></li> <!-- New Menu Item -->
             </ul>            
         </nav>
     </header>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Flash messages block -->
     {% with messages = get_flashed_messages(with_categories=true) %}

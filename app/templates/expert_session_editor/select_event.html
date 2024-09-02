@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Select Event</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    {{ form.event.label }} {{ form.event() }}<br><br>
+    {{ form.submit() }}
+</form>
+{% endblock %}

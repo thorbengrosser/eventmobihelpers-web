@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Edit Session</h2>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.name.label }}<br>
+        {{ form.name(size=40) }}<br><br>
+    </div>
+    <div>
+        {{ form.description.label }}<br>
+        {{ form.description(rows=5, cols=40) }}<br><br>
+    </div>
+    <div>
+        {{ form.start_datetime.label }}<br>
+        {{ form.start_datetime() }}<br><br>
+    </div>
+    <div>
+        {{ form.end_datetime.label }}<br>
+        {{ form.end_datetime() }}<br><br>
+    </div>
+    <div style="margin-bottom: 10px;">
+        <label>Chat Enabled:</label><br>
+        {{ form.chat_enabled(class="inline-radio") }}
+    </div>
+    <div style="margin-bottom: 10px;">
+        <label>AAQ Enabled:</label><br>
+        {{ form.aaq_enabled(class="inline-radio") }}
+    </div>
+    {{ form.submit() }}
+  </form>
+{% endblock %}
