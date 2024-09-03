@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EventMobi Tool{% endblock %}</title>
-    <link rel="stylesheet" href="https://thorben.io/tms/emhelperstyle.css">
-</head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  </head>
 <body>
     <header>
         <h1>EventMobi Tool</h1>
         <nav>
             <ul>
-                <li><a href="/delete_sessions_group/api_key">Delete Sessions in Group</a></li>
-                <li><a href="/add_people_to_group/api_key">Add People to Group by Email</a></li>
-                <li><a href="/manage_chat/api_key">Manage Chat Settings</a></li>
-                <li><a href="/mass_delete_sessions/api_key">Mass Delete Sessions</a></li>
-                <li><a href="/expert_session_editor/api_key">Expert Session Editor</a></li> <!-- New Menu Item -->
+              <li><a href="/delete_sessions_group/api_key"><i class="fas fa-trash-alt"></i> Delete Sessions in Group</a></li>
+              <li><a href="/add_people_to_group/api_key"><i class="fas fa-user-plus"></i> Add People to Group by Email</a></li>
+              <li><a href="/manage_chat/api_key"><i class="fas fa-comments"></i> Manage Chat Settings</a></li>
+              <li><a href="/mass_delete_sessions/api_key"><i class="fas fa-times"></i> Mass Delete Sessions</a></li>
+              <li><a href="/expert_session_editor/api_key"><i class="fas fa-edit"></i> Expert Session Editor</a></li>
             </ul>            
         </nav>
     </header>
@@ -40,5 +42,42 @@
     <footer>
         <p>&copy; 2024 EventMobi Tool</p>
     </footer>
+    <!-- Disclaimer Popup -->
+<div id="disclaimer-popup" class="popup-overlay">
+  <div class="popup-content">
+      <h2>Important Notice</h2>
+      <p>This is not an official EventMobi tool. Use at your own risk.</p>
+      <p>If you are unsure of how to obtain an API key or how this tool works, please do not use it. Always create backups before making changes.</p>
+      <button id="close-popup">I Understand</button>
+</div>
+
+</div>
+
+<script>
+  // Function to check if the disclaimer has been seen
+  function checkDisclaimerSeen() {
+      return localStorage.getItem('disclaimerSeen');
+  }
+
+  // Function to show the disclaimer popup
+  function showDisclaimer() {
+      document.getElementById('disclaimer-popup').classList.add('show');
+  }
+
+  // Function to close the disclaimer popup
+  function closeDisclaimer() {
+      document.getElementById('disclaimer-popup').classList.remove('show');
+      localStorage.setItem('disclaimerSeen', 'true'); // Mark disclaimer as seen
+  }
+
+  // Show the disclaimer if it hasn't been seen
+  if (!checkDisclaimerSeen()) {
+      showDisclaimer();
+  }
+
+  // Add event listener to close the disclaimer
+  document.getElementById('close-popup').addEventListener('click', closeDisclaimer);
+</script>
+
 </body>
 </html>

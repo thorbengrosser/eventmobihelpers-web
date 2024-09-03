@@ -1,0 +1,338 @@
+/* General Styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: linear-gradient(90deg, #0077b6, #005f8a);
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 2px -2px gray;
+    border-radius: 0 0 8px 8px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+/* Updated Navigation Styles */
+nav {
+    margin-top: 20px;
+    background-color: #005f8a;
+    box-shadow: 0 4px 2px -2px gray;
+    border-radius: 8px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 10px;
+    margin: 0;
+    display: flex;
+    justify-content: space-around; /* Ensure equal spacing between menu items */
+    gap: 15px;
+}
+
+nav ul li {
+    display: inline-block;
+    position: relative; /* Allow for underline animation */
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* For underline effect */
+    z-index: 1; /* Ensure the link is above the underline */
+    display: inline-block;
+}
+
+nav ul li a:hover {
+    color: #ffdd00;
+    background-color: #004766;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Modern underline effect on hover */
+nav ul li a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 3px;
+    display: block;
+    margin-top: 5px;
+    right: 0;
+    background: #ffdd00;
+    transition: width 0.3s ease, right 0.3s ease;
+    z-index: -1; /* Place it behind the link */
+}
+
+nav ul li a:hover::after {
+    width: 100%;
+    right: 0;
+}
+
+/* Content and Footer Styles */
+main {
+    padding: 30px;
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+h2 {
+    color: #0077b6;
+    font-size: 2rem;
+    margin-bottom: 25px;
+}
+
+p {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 20px;
+}
+
+ul li a {
+    color: #0077b6;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-bottom: 2px solid #0077b6;
+    padding-bottom: 3px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+ul li a:hover {
+    color: #ffdd00;
+    border-color: #ffdd00;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #005f8a;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 0.9rem;
+    border-top: 5px solid #0077b6;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+form label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form select {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form input[type="submit"] {
+    padding: 10px;
+    font-size: 1rem;
+    color: white;
+    background-color: #0077b6;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #005f8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin: 20px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+/* Toast styles */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.toast {
+    background-color: #333;
+    color: #fff;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.success {
+    background-color: #4CAF50;
+}
+
+.toast.error {
+    background-color: #f44336;
+}
+
+.toast.info {
+    background-color: #2196F3;
+}
+
+.inline-radio {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.inline-radio input {
+    margin-left: 5px;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Popup Overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Popup Content */
+.popup-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 500px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.5s ease;
+}
+
+/* Popup Button */
+.popup-content button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: white;
+    background-color: #0077b6;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.popup-content button:hover {
+    background-color: #005f8a;
+}
+
+/* Show Popup */
+.popup-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Fade-in Animation for Popup */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
