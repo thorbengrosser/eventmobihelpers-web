@@ -4,6 +4,7 @@ from .forms import APIKeyForm, EventForm, SessionIDsForm
 from .services import fetch_events, get_session_uuid, delete_session
 import asyncio
 import aiohttp
+from app.utils import log_action
 
 @mass_delete_sessions.route('/api_key', methods=['GET', 'POST'])
 def api_key():
@@ -68,7 +69,8 @@ def delete_sessions():
             flash(f"Completed. The following sessions could not be deleted: {', '.join(errors)}", 'danger')
         else:
             flash("All sessions deleted successfully.", 'success')
-
+        # Log the action
+        log_action('mass_delete_sessions', event_id)
         return redirect(url_for('mass_delete_sessions.delete_complete'))
 
     return render_template('mass_delete_sessions/delete_sessions.html', form=form)

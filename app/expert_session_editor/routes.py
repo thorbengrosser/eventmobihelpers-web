@@ -3,7 +3,7 @@ from . import expert_session_editor
 from .forms import APIKeyForm, EventForm, SessionForm, EditSessionForm
 from .services import fetch_events, fetch_sessions, fetch_session_details, update_session
 from datetime import datetime
-
+from app.utils import log_action
 
 @expert_session_editor.route('/api_key', methods=['GET', 'POST'])
 def api_key():
@@ -90,6 +90,9 @@ def edit_session():
         }
         response = update_session(api_key, event_id, session_id, updated_data)
         flash(f"Session updated. Response: {response}", 'success')
+        # Log the action
+        log_action('expert_session_editor', event_id)
+        
         return redirect(url_for('expert_session_editor.edit_session'))
 
     return render_template('expert_session_editor/edit_session.html', form=form, session_details=session_details)

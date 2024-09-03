@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, flash, session
 from . import add_people_to_group
 from .forms import APIKeyForm, EventForm, GroupForm, EmailForm
 from .services import fetch_events, fetch_groups, fetch_person_by_email, update_person_groups
+from app.utils import log_action
 
 @add_people_to_group.route('/api_key', methods=['GET', 'POST'])
 def api_key():
@@ -92,7 +93,7 @@ def enter_emails():
             flash("All people have been added to the specified group.", 'success')
         else:
             flash(f"Added {success_count} of {len(people_to_be_updated)} to the group. {failure_count} email addresses could not be added.", 'danger')
-
+        log_action('add_people_to_group', event_id)
         return redirect(url_for('add_people_to_group.api_key'))
 
     return render_template('add_people_to_group/enter_emails.html', form=form)
