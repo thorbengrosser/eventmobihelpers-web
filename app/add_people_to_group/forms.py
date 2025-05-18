@@ -7,5 +7,6 @@ class GroupForm(FlaskForm):
     submit = SubmitField('Select Group')
 
 class EmailForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired()])
-    submit = SubmitField('Add Person')
+    email = TextAreaField('Email Addresses', validators=[DataRequired()], 
+                         description='Enter email addresses (one per line, or separated by commas, spaces, or semicolons)')
+    submit = SubmitField('Add People')
