@@ -8,6 +8,9 @@ charset-normalizer==3.3.2
 click==8.1.7
 Flask==3.0.3
 Flask-WTF==1.2.1
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
 frozenlist==1.4.1
 idna==3.8
 itsdangerous==2.2.0
@@ -19,7 +22,5 @@ urllib3==2.2.2
 Werkzeug==3.0.4
 WTForms==3.1.2
 yarl==1.9.6
-Flask-Login==0.6.3
-Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.28
 email-validator==2.1.0.post1
