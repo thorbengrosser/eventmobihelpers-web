@@ -1,33 +1,77 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>Edit Session</h2>
-  <form method="POST">
-    {{ form.hidden_tag() }}
-    <div>
-        {{ form.name.label }}<br>
-        {{ form.name(size=40) }}<br><br>
-    </div>
-    <div>
-        {{ form.description.label }}<br>
-        {{ form.description(rows=5, cols=40) }}<br><br>
-    </div>
-    <div>
-        {{ form.start_datetime.label }}<br>
-        {{ form.start_datetime() }}<br><br>
-    </div>
-    <div>
-        {{ form.end_datetime.label }}<br>
-        {{ form.end_datetime() }}<br><br>
-    </div>
-    <div style="margin-bottom: 10px;">
-        <label>Chat Enabled:</label><br>
-        {{ form.chat_enabled(class="inline-radio") }}
-    </div>
-    <div style="margin-bottom: 10px;">
-        <label>AAQ Enabled:</label><br>
-        {{ form.aaq_enabled(class="inline-radio") }}
-    </div>
-    {{ form.submit() }}
-  </form>
+<div class="form-container">
+    <h2 class="page-header">Edit Session</h2>
+    
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-field">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control", size=40) }}
+            {% if form.name.errors %}
+                {% for error in form.name.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="form-field">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=5, cols=40) }}
+            {% if form.description.errors %}
+                {% for error in form.description.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="form-field">
+            {{ form.start_datetime.label(class="form-label") }}
+            {{ form.start_datetime(class="form-control") }}
+            {% if form.start_datetime.errors %}
+                {% for error in form.start_datetime.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="form-field">
+            {{ form.end_datetime.label(class="form-label") }}
+            {{ form.end_datetime(class="form-control") }}
+            {% if form.end_datetime.errors %}
+                {% for error in form.end_datetime.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="form-field">
+            <label class="form-label">Chat Enabled</label>
+            <div class="radio-group">
+                {% for subfield in form.chat_enabled %}
+                    <label class="inline-radio">
+                        {{ subfield() }} {{ subfield.label.text }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-field">
+            <label class="form-label">AAQ Enabled</label>
+            <div class="radio-group">
+                {% for subfield in form.aaq_enabled %}
+                    <label class="inline-radio">
+                        {{ subfield() }} {{ subfield.label.text }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-field">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
 {% endblock %}

@@ -1,4 +1,5 @@
 import requests
+from app.api.client import EventMobiClient
 
 def fetch_events(api_key):
     url = "https://uapi.eventmobi.com/events"
@@ -12,27 +13,13 @@ def fetch_events(api_key):
     return response.json().get('data', [])
 
 def fetch_tracks(api_key, event_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/tracks"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code != 200:
-        print(f"Failed to fetch tracks. Status code: {response.status_code}")
-        return None
-
+    client = EventMobiClient()
     try:
-        tracks_data = response.json()
-        print("Tracks data fetched:", tracks_data)  # Add this line to inspect the API response
-    except json.JSONDecodeError:
-        print("Error decoding JSON response.")
+        response = client._make_request('GET', f'events/{event_id}/sessions/tracks')
+        return response.get('data', [])
+    except Exception as e:
+        print(f"Failed to fetch tracks: {str(e)}")
         return None
-
-    return tracks_data.get('data', [])
-
-
 
 def fetch_sessions_by_track(api_key, event_id, track_id):
     url = f"https://uapi.eventmobi.com/events/{event_id}/sessions"
@@ -58,8 +45,6 @@ def fetch_sessions_by_track(api_key, event_id, track_id):
     ]
     
     return sessions_by_track
-
-
 
 def delete_session(api_key, event_id, session_id):
     url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/{session_id}"

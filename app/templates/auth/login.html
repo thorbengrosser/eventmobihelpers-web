@@ -1,0 +1,55 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Sign In - EventMobi Helpers{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Sign In</h1>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control") }}
+                            {% for error in form.username.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control") }}
+                            {% for error in form.password.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3 form-check">
+                            {{ form.remember_me(class="form-check-input") }}
+                            {{ form.remember_me.label(class="form-check-label") }}
+                        </div>
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">About EventMobi Helpers</h2>
+                    <p>EventMobi Helpers is a powerful tool designed to streamline event management and enhance attendee experiences. Our platform provides:</p>
+                    <ul>
+                        <li>Efficient session management</li>
+                        <li>Group organization tools</li>
+                        <li>Real-time updates and modifications</li>
+                        <li>Seamless integration with EventMobi</li>
+                    </ul>
+                    <p>Need an account? <a href="mailto:admin@example.com?subject=Account Request for EventMobi Helpers&body=Please provide the following information:%0D%0A%0D%0A1. Your name:%0D%0A2. Your organization:%0D%0A3. Your role:%0D%0A4. How you plan to use EventMobi Helpers:%0D%0A5. Why you need access to the platform:%0D%0A%0D%0AThank you for your interest!">Request an account</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

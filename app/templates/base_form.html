@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="page-header">{{ title }}</h2>
+    {% if subtitle %}
+    <p class="text-muted">{{ subtitle }}</p>
+    {% endif %}
+    
+    <form method="POST" {% if action %}action="{{ action }}"{% endif %}>
+        {{ form.hidden_tag() }}
+        
+        {% for field in form if field.type != 'HiddenField' and field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
+        <div class="form-field {% if field.errors %}error{% endif %}">
+            {{ field.label(class="form-label") }}
+            {{ field(class="form-control") }}
+            {% if field.errors %}
+                {% for error in field.errors %}
+                    <p class="form-error">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="form-field" style="margin-top: 2rem;">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %} 

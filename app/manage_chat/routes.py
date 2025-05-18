@@ -1,89 +1,68 @@
 from flask import render_template, redirect, url_for, flash, session
-from . import manage_chat
-from .forms import APIKeyForm, EventForm, GroupForm, ChatToggleForm
-from .services import fetch_events, fetch_groups, fetch_people_in_group, update_chat_settings
-from app.utils import log_action
+from . import manage_attendee_settings
+from .forms import GroupForm, AttendeeSettingsForm
+from .services import fetch_groups, fetch_people_in_group, update_attendee_settings
+from app.utils import log_action, get_api_key
 
-@manage_chat.route('/api_key', methods=['GET', 'POST'])
-def api_key():
-    form = APIKeyForm()
-    if form.validate_on_submit():
-        session['api_key'] = form.api_key.data
-        return redirect(url_for('manage_chat.select_event'))
-    return render_template('manage_chat/api_key.html', form=form)
-
-@manage_chat.route('/select_event', methods=['GET', 'POST'])
-def select_event():
-    api_key = session.get('api_key')
-    if not api_key:
-        return redirect(url_for('manage_chat.api_key'))
-
-    events = fetch_events(api_key)
-    if not events:
-        flash('Failed to fetch events. Please check your API key.')
-        return redirect(url_for('manage_chat.api_key'))
-
-    form = EventForm()
-    form.event.choices = [(event['id'], event['name']) for event in events]
-    if form.validate_on_submit():
-        session['event_id'] = form.event.data
-        return redirect(url_for('manage_chat.select_group'))
-
-    return render_template('manage_chat/select_event.html', form=form)
-
-@manage_chat.route('/select_group', methods=['GET', 'POST'])
+@manage_attendee_settings.route('/select_group', methods=['GET', 'POST'])
 def select_group():
-    api_key = session.get('api_key')
+    api_key = get_api_key()
     event_id = session.get('event_id')
     if not api_key or not event_id:
-        return redirect(url_for('manage_chat.api_key'))
+        return redirect(url_for('main.index'))
 
     groups = fetch_groups(api_key, event_id)
-    if not groups:
-        flash('Failed to fetch groups.')
-        return redirect(url_for('manage_chat.select_event'))
-
     form = GroupForm()
     form.group.choices = [(group['id'], group['name']) for group in groups]
+
     if form.validate_on_submit():
         session['group_id'] = form.group.data
-        return redirect(url_for('manage_chat.toggle_chat'))
+        return redirect(url_for('manage_attendee_settings.manage_settings'))
+    
+    return render_template('manage_attendee_settings/select_group.html', form=form, event_name=session.get('event_name'))
 
-    return render_template('manage_chat/select_group.html', form=form)
-
-@manage_chat.route('/toggle_chat', methods=['GET', 'POST'])
-def toggle_chat():
-    api_key = session.get('api_key')
+@manage_attendee_settings.route('/manage_settings', methods=['GET', 'POST'])
+def manage_settings():
+    api_key = get_api_key()
     event_id = session.get('event_id')
     group_id = session.get('group_id')
-    
-
     if not api_key or not event_id or not group_id:
-        return redirect(url_for('manage_chat.api_key'))
-    form = ChatToggleForm()
+        return redirect(url_for('main.index'))
+
+    people = fetch_people_in_group(api_key, event_id, group_id)
+    form = AttendeeSettingsForm()
+
     if form.validate_on_submit():
-        chat_enabled = form.chat_enabled.data
-        people = fetch_people_in_group(api_key, event_id, group_id)
-        if not people:
-            flash('No people found in the selected group.', 'danger')
-            return redirect(url_for('manage_chat.select_group'))
-
+        # Get all settings from the form
+        settings = {
+            'enable_chat': form.enable_chat.data,
+            'is_profile_visible': form.is_profile_visible.data,
+            'attendance_format': form.attendance_format.data,
+            'receive_organizer_email': form.receive_organizer_email.data,
+            'receive_attendee_email': form.receive_attendee_email.data,
+            'attendee_push_notifications': form.attendee_push_notifications.data,
+            'offline_notifications': form.offline_notifications.data
+        }
+        
+        print(f"DEBUG: Form data submitted: {settings}")
+        print(f"DEBUG: Number of people in group: {len(people) if people else 0}")
+        
+        # Update settings for each person in the group
         success_count = 0
-        failure_count = 0
-
         for person in people:
-            person_id = person['id']
-            status_code, response_data = update_chat_settings(api_key, event_id, person_id, chat_enabled)
-            if status_code == 200:
+            print(f"DEBUG: Processing person: {person.get('id')} - {person.get('name')}")
+            status_code, response = update_attendee_settings(api_key, event_id, person['id'], settings)
+            if status_code in [200, 204]:
                 success_count += 1
             else:
-                failure_count += 1
-
-        if failure_count == 0:
-            flash(f"Chat {'enabled' if chat_enabled else 'disabled'} for all members in the selected group.", 'success')
+                print(f"DEBUG: Failed to update person {person.get('id')}. Status: {status_code}, Response: {response}")
+        
+        if success_count > 0:
+            flash(f'Successfully updated settings for {success_count} attendees!', 'success')
         else:
-            flash(f"Chat settings updated for {success_count} out of {len(people)} people. Some updates failed.", 'warning')
-        log_action('manage_chat', event_id)
-        return redirect(url_for('manage_chat.api_key'))
+            flash('Failed to update settings for any attendees.', 'error')
+            
+        log_action('manage_attendee_settings', event_id)
+        return redirect(url_for('manage_attendee_settings.select_group'))
 
-    return render_template('manage_chat/toggle_chat.html', form=form)
+    return render_template('manage_attendee_settings/manage_settings.html', form=form, people=people, event_name=session.get('event_name'))

@@ -3,57 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EventMobi Helpers - A collection of tools for managing EventMobi events">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}EventMobi Helpers{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="header-container">
-            <a href="{{ url_for('main.index') }}" class="logo">EventMobi Helpers</a>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('delete_sessions_group.api_key') }}"><i class="fas fa-trash-alt"></i> Delete Sessions</a></li>
-                    <li><a href="{{ url_for('add_people_to_group.api_key') }}"><i class="fas fa-user-plus"></i> Add People</a></li>
-                    <li><a href="{{ url_for('manage_chat.api_key') }}"><i class="fas fa-comments"></i> Manage Chat</a></li>
-                    <li><a href="{{ url_for('mass_delete_sessions.api_key') }}"><i class="fas fa-times"></i> Mass Delete</a></li>
-                    <li><a href="{{ url_for('expert_session_editor.api_key') }}"><i class="fas fa-edit"></i> Session Editor</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <!-- Flash messages block -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('main.index') }}" class="logo" aria-label="Home">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventMobi Helpers</span>
+                </a>
+            </div>
+            
+            <!-- Search within helpers -->
+            <div class="sidebar-search">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search helpers..." class="search-input">
                 </div>
-            {% endif %}
-        {% endwith %}
+            </div>
 
-        {% block content %}{% endblock %}
-    </main>
+            <nav class="sidebar-nav">
+                <!-- Content Section -->
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Content</h3>
+                    <ul>
+                        <li>
+                            <a href="{{ url_for('expert_session_editor.select_session') }}" class="nav-link" aria-label="Session Editor">
+                                <i class="fas fa-edit"></i>
+                                <span>Session Editor</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-    <footer>
-        <p>&copy; 2024 EventMobi Helpers</p>
-    </footer>
+                <!-- People Section -->
+                <div class="nav-section">
+                    <h3 class="nav-section-title">People</h3>
+                    <ul>
+                        <li>
+                            <a href="{{ url_for('add_people_to_group.select_group') }}" class="nav-link" aria-label="Add People">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add People</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('manage_attendee_settings.select_group') }}">
+                                <i class="fas fa-users-cog"></i>
+                                <span>Manage Attendee Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Sessions Section -->
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Sessions</h3>
+                    <ul>
+                        <li>
+                            <a href="{{ url_for('delete_sessions_group.select_track') }}" class="nav-link" aria-label="Delete Sessions">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Delete Sessions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('mass_delete_sessions.delete_sessions') }}" class="nav-link" aria-label="Mass Delete">
+                                <i class="fas fa-times"></i>
+                                <span>Mass Delete</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle Sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="event-selector">
+                        <button class="event-dropdown-toggle" id="event-dropdown-toggle">
+                            <i class="fas fa-calendar"></i>
+                            <span id="current-event-name">{{ event_name or 'Select Event' }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="event-dropdown" id="event-dropdown">
+                            <div class="event-dropdown-header">
+                                <h3>Select Event</h3>
+                                <button class="event-dropdown-close" id="event-dropdown-close">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="event-dropdown-body">
+                                <div class="event-search">
+                                    <input type="text" id="event-search" placeholder="Search events...">
+                                </div>
+                                <div class="event-list" id="event-list">
+                                    <!-- Events will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="top-bar-right">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                        <a href="{{ url_for('auth.users') }}" class="btn btn-secondary" aria-label="User Management">
+                            <i class="fas fa-users"></i>
+                            User Management
+                        </a>
+                        {% endif %}
+                        <span class="user-welcome">Welcome, {{ current_user.username }}</span>
+                        <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary" aria-label="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" aria-label="Login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Login
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.change_api_key') }}" class="btn btn-secondary" aria-label="Change API Key">
+                        <i class="fas fa-key"></i>
+                        Change API Key
+                    </a>
+                    <button class="icon-button" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Flash messages block -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages" role="alert">
+                            {% for category, message in messages %}
+                                <div class="toast toast-{{ category }}">
+                                    <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Loading overlay -->
+                <div id="loading-overlay" class="loading-overlay" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
 
     <!-- Disclaimer Popup -->
-    <div id="disclaimer-popup" class="popup-overlay">
+    <div id="disclaimer-popup" class="popup-overlay" role="dialog" aria-labelledby="disclaimer-title">
         <div class="popup-content">
-            <h2>Important Notice</h2>
-            <p>This is not an official EventMobi tool. Use at your own risk.</p>
-            <p>If you are unsure of how to obtain an API key or how this tool works, please do not use it. Always create backups before making changes.</p>
-            <button id="close-popup">I Understand</button>
+            <div class="popup-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2 id="disclaimer-title">Important Notice</h2>
+            </div>
+            <div class="popup-body">
+                <p>This is not an official EventMobi tool. Use at your own risk.</p>
+                <p>If you are unsure of how to obtain an API key or how this tool works, please do not use it. Always create backups before making changes.</p>
+            </div>
+            <div class="popup-footer">
+                <button id="close-popup" class="btn btn-primary">
+                    <i class="fas fa-check"></i>
+                    I Understand
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Loading state management
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // Add loading state to all forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    showLoading();
+                });
+            });
+
+            // Sidebar toggle
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const appContainer = document.querySelector('.app-container');
+            
+            sidebarToggle.addEventListener('click', () => {
+                appContainer.classList.toggle('sidebar-collapsed');
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                navLinks.forEach(link => {
+                    const text = link.textContent.toLowerCase();
+                    const section = link.closest('.nav-section');
+                    
+                    if (text.includes(searchTerm)) {
+                        link.style.display = 'flex';
+                        section.style.display = 'block';
+                    } else {
+                        link.style.display = 'none';
+                    }
+                    
+                    // Hide section if all links are hidden
+                    const visibleLinks = section.querySelectorAll('.nav-link[style="display: flex"]');
+                    if (visibleLinks.length === 0) {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Disclaimer management
         function checkDisclaimerSeen() {
             return localStorage.getItem('disclaimerSeen');
         }
@@ -72,6 +262,117 @@
         }
 
         document.getElementById('close-popup').addEventListener('click', closeDisclaimer);
+
+        // Event Selection
+        const eventDropdownToggle = document.getElementById('event-dropdown-toggle');
+        const eventDropdown = document.getElementById('event-dropdown');
+        const eventDropdownClose = document.getElementById('event-dropdown-close');
+        const eventSearch = document.getElementById('event-search');
+        const eventList = document.getElementById('event-list');
+        const currentEventName = document.getElementById('current-event-name');
+
+        let events = [];
+        let selectedEventId = null;
+
+        // Fetch events
+        async function fetchEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const data = await response.json();
+                if (data.success) {
+                    events = data.events;
+                    renderEvents(events);
+                } else {
+                    console.error('Failed to fetch events:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching events:', error);
+            }
+        }
+
+        // Render events in the dropdown
+        function renderEvents(eventsToRender) {
+            eventList.innerHTML = '';
+            eventsToRender.forEach(event => {
+                const eventElement = document.createElement('button');
+                eventElement.className = 'event-item';
+                eventElement.innerHTML = `
+                    <div class="event-item-content">
+                        <span class="event-name">${event.name}</span>
+                        <span class="event-date">${new Date(event.start_date).toLocaleDateString()}</span>
+                    </div>
+                `;
+                eventElement.addEventListener('click', () => selectEvent(event));
+                eventList.appendChild(eventElement);
+            });
+        }
+
+        // Select an event
+        async function selectEvent(event) {
+            try {
+                const response = await fetch(`/api/events/${event.id}/select`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    selectedEventId = event.id;
+                    currentEventName.textContent = event.name;
+                    eventDropdown.classList.remove('show');
+                    // Store in localStorage for persistence
+                    localStorage.setItem('selectedEventId', event.id);
+                    localStorage.setItem('selectedEventName', event.name);
+                    // Reload the page to ensure all components use the new event
+                    window.location.reload();
+                } else {
+                    console.error('Failed to select event:', data.error);
+                    alert('Failed to select event: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error selecting event:', error);
+                alert('Error selecting event. Please try again.');
+            }
+        }
+
+        // Search events
+        eventSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredEvents = events.filter(event => 
+                event.name.toLowerCase().includes(searchTerm)
+            );
+            renderEvents(filteredEvents);
+        });
+
+        // Toggle dropdown
+        eventDropdownToggle.addEventListener('click', () => {
+            eventDropdown.classList.toggle('show');
+            if (eventDropdown.classList.contains('show')) {
+                fetchEvents();
+            }
+        });
+
+        // Close dropdown
+        eventDropdownClose.addEventListener('click', () => {
+            eventDropdown.classList.remove('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!eventDropdown.contains(e.target) && !eventDropdownToggle.contains(e.target)) {
+                eventDropdown.classList.remove('show');
+            }
+        });
+
+        // Load selected event from session on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const eventName = document.getElementById('current-event-name').textContent;
+            if (eventName && eventName !== 'Select Event') {
+                currentEventName.textContent = eventName;
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="page-header">Manage Chat Settings</h2>
+    
+    <form method="POST" action="{{ url_for('manage_attendee_settings.manage_settings') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-field">
+            {{ form.enable_chat.label(class="form-label") }}
+            <div class="radio-group">
+                {{ form.enable_chat(class="inline-radio") }}
+            </div>
+        </div>
+        <div class="form-field">
+            {{ form.submit(class="btn-primary") }}
+        </div>
+    </form>
+
+    <h3 class="page-header" style="margin-top: 2rem;">People in Group</h3>
+    {% if people %}
+        <ul class="list-group">
+            {% for person in people %}
+                <li class="list-group-item">{{ person.name }} ({{ person.email }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">No people found in this group.</p>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-manage_chat = Blueprint('manage_chat', __name__)
+manage_attendee_settings = Blueprint('manage_attendee_settings', __name__)
 
 from . import routes

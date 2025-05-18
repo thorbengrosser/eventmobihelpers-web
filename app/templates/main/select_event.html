@@ -1,0 +1,12 @@
+{% extends "base_form.html" %}
+
+{% set title = "Select Event" %}
+
+{% block content %}
+{{ super() }}
+<div class="form-container" style="margin-top: 1rem;">
+    <div class="text-center">
+        <a href="{{ url_for('main.change_api_key') }}" class="btn-secondary">Change API Key</a>
+    </div>
+</div>
+{% endblock %} 

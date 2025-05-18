@@ -1,9 +1,3 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Select Session</h2>
-<form method="POST">
-    {{ form.hidden_tag() }}
-    {{ form.session.label }} {{ form.session() }}<br><br>
-    {{ form.submit() }}
-</form>
-{% endblock %}
+{% extends "base_form.html" %}
+
+{% set title = "Select Session" %}

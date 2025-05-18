@@ -1,99 +1,61 @@
 from flask import render_template, redirect, url_for, flash, session
 from . import add_people_to_group
-from .forms import APIKeyForm, EventForm, GroupForm, EmailForm
-from .services import fetch_events, fetch_groups, fetch_person_by_email, update_person_groups
-from app.utils import log_action
+from .forms import GroupForm, EmailForm
+from .services import fetch_groups, fetch_person_by_email, update_person_groups
+from app.utils import log_action, get_api_key
+import logging
 
-@add_people_to_group.route('/api_key', methods=['GET', 'POST'])
-def api_key():
-    form = APIKeyForm()
-    if form.validate_on_submit():
-        session['api_key'] = form.api_key.data
-        return redirect(url_for('add_people_to_group.select_event'))
-    return render_template('add_people_to_group/api_key.html', form=form)
-
-@add_people_to_group.route('/select_event', methods=['GET', 'POST'])
-def select_event():
-    api_key = session.get('api_key')
-    if not api_key:
-        return redirect(url_for('add_people_to_group.api_key'))
-
-    events = fetch_events(api_key)
-    if not events:
-        flash('Failed to fetch events. Please check your API key.')
-        return redirect(url_for('add_people_to_group.api_key'))
-
-    form = EventForm()
-    form.event.choices = [(event['id'], event['name']) for event in events]
-    if form.validate_on_submit():
-        session['event_id'] = form.event.data
-        return redirect(url_for('add_people_to_group.select_group'))
-
-    return render_template('add_people_to_group/select_event.html', form=form)
+logger = logging.getLogger(__name__)
 
 @add_people_to_group.route('/select_group', methods=['GET', 'POST'])
 def select_group():
-    api_key = session.get('api_key')
+    api_key = get_api_key()
     event_id = session.get('event_id')
     if not api_key or not event_id:
-        return redirect(url_for('add_people_to_group.api_key'))
+        logger.warning("Missing api_key or event_id, redirecting to index")
+        return redirect(url_for('main.index'))
 
     groups = fetch_groups(api_key, event_id)
-    if not groups:
-        flash('Failed to fetch groups.')
-        return redirect(url_for('add_people_to_group.select_event'))
-
+    logger.debug(f"Fetched groups: {groups}")
     form = GroupForm()
     form.group.choices = [(group['id'], group['name']) for group in groups]
+
     if form.validate_on_submit():
+        logger.debug(f"Selected group: {form.group.data}")
         session['group_id'] = form.group.data
-        return redirect(url_for('add_people_to_group.enter_emails'))
+        return redirect(url_for('add_people_to_group.add_people'))
+    
+    return render_template('add_people_to_group/select_group.html', form=form, event_name=session.get('event_name'))
 
-    return render_template('add_people_to_group/select_group.html', form=form)
-
-@add_people_to_group.route('/enter_emails', methods=['GET', 'POST'])
-def enter_emails():
-    api_key = session.get('api_key')
+@add_people_to_group.route('/add_people', methods=['GET', 'POST'])
+def add_people():
+    api_key = get_api_key()
     event_id = session.get('event_id')
     group_id = session.get('group_id')
-
+    logger.debug(f"Current session state - event_id: {event_id}, group_id: {group_id}")
+    
     if not api_key or not event_id or not group_id:
-        return redirect(url_for('add_people_to_group.api_key'))
+        logger.warning("Missing api_key, event_id, or group_id, redirecting to index")
+        return redirect(url_for('main.index'))
 
     form = EmailForm()
     if form.validate_on_submit():
-        emails = form.emails.data.split(',')
-        people_to_be_updated = []
-
-        for email in emails:
-            person_data = fetch_person_by_email(api_key, event_id, email.strip())
-            if not person_data:
-                flash(f"No person found with email {email}.")
-                continue
-
-            person = person_data[0]
-            person_id = person['id']
-            current_groups = person.get('groups', [])
-            current_groups.append({"id": group_id})
-            people_to_be_updated.append({"id": person_id, "groups": current_groups, "email": email})
-
-        success_count = 0
-        failure_count = 0
-        failed_emails = []
-
-        for person in people_to_be_updated:
-            status_code, response_data = update_person_groups(api_key, event_id, person['id'], person['groups'])
+        email = form.email.data
+        logger.debug(f"Attempting to add person with email: {email}")
+        person = fetch_person_by_email(api_key, event_id, email)
+        if person:
+            logger.debug(f"Found person: {person}")
+            status_code, response = update_person_groups(api_key, event_id, person['id'], [group_id])
+            logger.debug(f"Update response - status: {status_code}, body: {response}")
             if status_code == 200:
-                success_count += 1
+                flash(f"Successfully added {email} to the group!", 'success')
+                log_action('add_people_to_group', event_id)
             else:
-                failure_count += 1
-                failed_emails.append(person['email'])
-
-        if failure_count == 0:
-            flash("All people have been added to the specified group.", 'success')
+                logger.error(f"Failed to update groups. Status: {status_code}, Response: {response}")
+                flash(f"Failed to add {email} to the group. Please try again.", 'error')
         else:
-            flash(f"Added {success_count} of {len(people_to_be_updated)} to the group. {failure_count} email addresses could not be added.", 'danger')
-        log_action('add_people_to_group', event_id)
-        return redirect(url_for('add_people_to_group.api_key'))
+            logger.warning(f"No person found with email: {email}")
+            flash(f"Could not find person with email {email}", 'error')
+        return redirect(url_for('add_people_to_group.add_people'))
 
-    return render_template('add_people_to_group/enter_emails.html', form=form)
+    return render_template('add_people_to_group/add_people.html', form=form, event_name=session.get('event_name'))

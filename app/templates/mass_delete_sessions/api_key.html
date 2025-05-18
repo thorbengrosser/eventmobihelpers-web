@@ -2,6 +2,7 @@
 
 {% block content %}
 <h2>Enter API Key</h2>
+<p class="text-muted">Your API key will be stored for 1 hour for your convenience.</p>
 <form method="POST" action="{{ url_for('mass_delete_sessions.api_key') }}">
     {{ form.hidden_tag() }}
     {{ form.api_key.label }} {{ form.api_key(size=40) }}<br><br>

@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime
 
 def fetch_events(api_key):
     url = "https://uapi.eventmobi.com/events"
@@ -40,5 +41,27 @@ def update_session(api_key, event_id, session_id, data):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    response = requests.patch(url, headers=headers, json=data)
+    
+    # Create a copy of the data to modify
+    update_data = data.copy()
+    
+    # Convert datetime objects to ISO format strings
+    if 'start_datetime' in update_data and isinstance(update_data['start_datetime'], datetime):
+        update_data['start_datetime'] = update_data['start_datetime'].isoformat()
+    if 'end_datetime' in update_data and isinstance(update_data['end_datetime'], datetime):
+        update_data['end_datetime'] = update_data['end_datetime'].isoformat()
+    
+    # Handle chat settings
+    if 'chat_enabled' in update_data:
+        chat_enabled = update_data.pop('chat_enabled') == 'true'
+        update_data['chat'] = {'enabled': chat_enabled}
+    
+    # Handle AAQ settings
+    if 'aaq_enabled' in update_data:
+        aaq_enabled = update_data.pop('aaq_enabled') == 'true'
+        if 'settings' not in update_data:
+            update_data['settings'] = {}
+        update_data['settings']['aaq_enabled'] = aaq_enabled
+    
+    response = requests.patch(url, headers=headers, json=update_data)
     return response.json()

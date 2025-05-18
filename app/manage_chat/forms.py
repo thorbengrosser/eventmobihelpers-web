@@ -2,18 +2,28 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField, BooleanField
 from wtforms.validators import DataRequired
 
-class APIKeyForm(FlaskForm):
-    api_key = StringField('API Key', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-class EventForm(FlaskForm):
-    event = SelectField('Select Event', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
 class GroupForm(FlaskForm):
-    group = SelectField('Select Group', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    group = SelectField('Group', validators=[DataRequired()])
+    submit = SubmitField('Select Group')
 
-class ChatToggleForm(FlaskForm):
-    chat_enabled = BooleanField('Enable Chat for Selected Group')
-    submit = SubmitField('Submit')
+class AttendeeSettingsForm(FlaskForm):
+    # Chat Settings
+    enable_chat = BooleanField('Enable Chat')
+    
+    # Profile Visibility
+    is_profile_visible = BooleanField('Make Profile Visible')
+    
+    # Notification Settings
+    receive_organizer_email = BooleanField('Receive Organizer Emails')
+    receive_attendee_email = BooleanField('Receive Attendee Emails')
+    attendee_push_notifications = BooleanField('Enable Push Notifications')
+    offline_notifications = BooleanField('Enable Offline Notifications')
+    
+    # Attendance Format
+    attendance_format = SelectField('Attendance Format', choices=[
+        ('in_person', 'In Person'),
+        ('virtual', 'Virtual'),
+        ('hybrid', 'Hybrid')
+    ])
+    
+    submit = SubmitField('Update Settings')

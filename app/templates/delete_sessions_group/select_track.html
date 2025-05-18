@@ -1,10 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_form.html" %}
 
-{% block content %}
-  <h2>Select Track to Delete Sessions</h2>
-  <form method="POST" action="{{ url_for('delete_sessions_group.select_track') }}">
-    {{ form.hidden_tag() }}
-    {{ form.track.label }} {{ form.track() }}<br><br>
-    {{ form.submit() }}
-  </form>
-{% endblock %}
+{% set title = "Select Track to Delete Sessions" %}
+{% set action = url_for('delete_sessions_group.select_track') %}
