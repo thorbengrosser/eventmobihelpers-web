@@ -12,6 +12,7 @@ This web application provides several tools to manage EventMobi events using the
    
 3. **Manage Chat Settings**:
    - Users can enable or disable the chat feature for a group of people within an event.
+   - Manage attendee settings and chat preferences
 
 4. **Mass Delete Sessions**:
    - Allows users to delete multiple sessions by providing a list of session IDs.
@@ -24,6 +25,8 @@ This web application provides several tools to manage EventMobi events using the
 - Python 3.x
 - Flask
 - Requests library
+- Flask-Login (for authentication)
+- Flask-WTF (for forms)
 
 ## Installation
 
@@ -47,14 +50,21 @@ This web application provides several tools to manage EventMobi events using the
     pip install -r requirements.txt
     ```
 
-4. Run the application:
+4. Set up environment variables:
+   - Create a `.env` file in the root directory
+   - Add your EventMobi API credentials:
+     ```
+     EVENTMOBI_API_KEY=your_api_key
+     EVENTMOBI_API_SECRET=your_api_secret
+     ```
+
+5. Run the application:
 
     ```bash
     python run.py
     ```
 
-5. Open your web browser and navigate to `http://127.0.0.1:5000`.
-
+6. Open your web browser and navigate to `http://127.0.0.1:5000`.
 
 ## Deployment
 
@@ -64,7 +74,9 @@ For deploying this application on a server (e.g., using Apache with mod_wsgi), f
    
 2. **Create a virtual environment** on the server and install the required packages using the `requirements.txt` file.
 
-3. **Set up Apache to serve the Flask application** by configuring `mod_wsgi`. The WSGI entry point should be defined in a `wsgi.py` file:
+3. **Set up environment variables** on your production server.
+
+4. **Set up Apache** to serve the Flask application by configuring `mod_wsgi`. The WSGI entry point should be defined in a `wsgi.py` file:
 
     ```python
     from app import create_app
@@ -75,9 +87,9 @@ For deploying this application on a server (e.g., using Apache with mod_wsgi), f
         app.run()
     ```
 
-4. **Configure Apache** to point to the `wsgi.py` file and set up the necessary directory permissions.
+5. **Configure Apache** to point to the `wsgi.py` file and set up the necessary directory permissions.
 
-5. **Set up automatic deployment** by configuring a Git post-receive hook or using a continuous deployment tool.
+6. **Set up automatic deployment** by configuring a Git post-receive hook or using a continuous deployment tool.
 
 ## Folder Structure
 
@@ -85,62 +97,80 @@ For deploying this application on a server (e.g., using Apache with mod_wsgi), f
 eventmobi-helpers-web/
 ├── app/
 │   ├── __init__.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── api_client.py
+│   ├── auth/
+│   │   ├── __init__.py
+│   │   ├── forms.py
+│   │   └── routes.py
+│   ├── extensions.py
+│   ├── models.py
+│   ├── session.py
 │   ├── main/
 │   │   ├── __init__.py
-│   │   ├── routes.py
+│   │   └── routes.py
 │   ├── delete_sessions_group/
 │   │   ├── __init__.py
 │   │   ├── routes.py
 │   │   ├── forms.py
-│   │   ├── services.py
+│   │   └── services.py
 │   ├── add_people_to_group/
 │   │   ├── __init__.py
 │   │   ├── routes.py
 │   │   ├── forms.py
-│   │   ├── services.py
+│   │   └── services.py
 │   ├── manage_chat/
 │   │   ├── __init__.py
 │   │   ├── routes.py
 │   │   ├── forms.py
-│   │   ├── services.py
+│   │   └── services.py
 │   ├── mass_delete_sessions/
 │   │   ├── __init__.py
 │   │   ├── routes.py
 │   │   ├── forms.py
-│   │   ├── services.py
+│   │   └── services.py
+│   ├── expert_session_editor/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   ├── forms.py
+│   │   └── services.py
 │   ├── templates/
 │   │   ├── base.html
+│   │   ├── base_form.html
 │   │   ├── index.html
+│   │   ├── auth/
+│   │   ├── main/
 │   │   ├── delete_sessions_group/
-│   │   │   ├── api_key.html
-│   │   │   ├── select_event.html
-│   │   │   ├── select_track.html
 │   │   ├── add_people_to_group/
-│   │   │   ├── api_key.html
-│   │   │   ├── select_event.html
-│   │   │   ├── select_group.html
 │   │   ├── manage_chat/
-│   │   │   ├── api_key.html
-│   │   │   ├── select_event.html
-│   │   │   ├── select_group.html
 │   │   ├── mass_delete_sessions/
-│   │   │   ├── api_key.html
-│   │   │   ├── select_event.html
-│   │   │   ├── delete_sessions.html
-├── static/
-│   ├── css/
-│   │   ├── styles.css
+│   │   └── expert_session_editor/
+│   └── static/
+│       └── css/
+│           └── styles.css
+├── instance/
 ├── venv/
 ├── wsgi.py
 ├── run.py
 ├── requirements.txt
-├── README.md
+├── config.py
+└── README.md
 ```
 
 ## Customization
 
 - **CSS Customization**: Modify the CSS file located at `static/css/styles.css`.
 - **Template Customization**: Templates are located in the `app/templates/` directory and can be modified to fit your needs.
+- **API Configuration**: Update the API settings in `config.py` and environment variables.
+
+## Security
+
+- The application uses Flask-Login for authentication
+- API credentials are stored securely using environment variables
+- CSRF protection is enabled for all forms
+- Session management is handled securely
 
 ## License
 
