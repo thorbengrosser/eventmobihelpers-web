@@ -53,9 +53,8 @@ def update_person_groups(api_key, event_id, person_id, groups):
         "Accept": "application/vnd.eventmobi+json; version=3",
         "Authorization": f"Bearer {api_key}"
     }
-    # Convert group IDs to group objects
-    group_objects = [{"id": group_id} for group_id in groups]
-    data = {"groups": group_objects}
+    # groups is now a list of group objects (with id and external_id)
+    data = {"groups": groups}
     logger.debug(f"Updating person groups at {url} with data: {data}")
     response = requests.patch(url, json=data, headers=headers)
     logger.debug(f"Update groups API response status: {response.status_code}")

@@ -50,17 +50,36 @@ def add_people():
         email_text = form.email.data
         emails = parse_emails(email_text)
         logger.debug(f"Parsed emails: {emails}")
-        
+
+        # Fetch all groups for the event so we can look up external_id and other fields
+        all_groups = fetch_groups(api_key, event_id) or []
+        all_groups_dict = {g['id']: g for g in all_groups if 'id' in g}
+
         success_count = 0
         error_count = 0
         not_found_count = 0
-        
+
         for email in emails:
             logger.debug(f"Attempting to add person with email: {email}")
             person = fetch_person_by_email(api_key, event_id, email)
             if person:
                 logger.debug(f"Found person: {person}")
-                status_code, response = update_person_groups(api_key, event_id, person['id'], [group_id])
+                # Get current group objects
+                current_groups = person.get('groups', [])
+                current_group_ids = {g['id'] for g in current_groups if 'id' in g}
+                # Add the selected group if not already present
+                updated_group_ids = set(current_group_ids)
+                updated_group_ids.add(group_id)
+                # Build group objects with id and external_id (and optionally name/type)
+                updated_group_objs = []
+                for gid in updated_group_ids:
+                    group_obj = all_groups_dict.get(gid)
+                    if group_obj and group_obj.get('external_id') is not None:
+                        updated_group_objs.append({
+                            'id': group_obj['id'],
+                            'external_id': group_obj['external_id']
+                        })
+                status_code, response = update_person_groups(api_key, event_id, person['id'], updated_group_objs)
                 logger.debug(f"Update response - status: {status_code}, body: {response}")
                 if status_code == 200:
                     success_count += 1
