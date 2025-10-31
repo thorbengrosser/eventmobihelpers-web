@@ -50,6 +50,12 @@
                     <h3 class="nav-section-title">People</h3>
                     <ul>
                         <li>
+                            <a href="{{ url_for('attendee_browser.browse_attendees') }}" class="nav-link" aria-label="Attendee Browser">
+                                <i class="fas fa-search"></i>
+                                <span>Attendee Browser</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ url_for('add_people_to_group.select_group') }}" class="nav-link" aria-label="Add People to Groups by E-Mail">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Add People to Groups by E-Mail</span>

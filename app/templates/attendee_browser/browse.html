@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% block title %}Attendee Browser{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto mt-8">
+  <div class="bg-white rounded-lg shadow border border-gray-100 mb-6">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h1 class="text-2xl font-semibold text-gray-900">Attendee Browser</h1>
+      <div class="flex gap-2">
+        <a href="{{ url_for('main.select_event') }}" class="text-sm text-gray-600 hover:text-gray-900">← Events</a>
+        <span class="text-gray-400">|</span>
+        <a href="{{ url_for('main.change_api_key') }}" class="text-sm text-gray-600 hover:text-gray-900">Change API Key</a>
+      </div>
+    </div>
+    
+    {% if event_name %}
+    <div class="px-6 py-3 bg-gray-50 border-b border-gray-100">
+      <span class="text-sm text-gray-600">Event: <strong>{{ event_name }}</strong></span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow border border-gray-100 mb-6">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900">Filters</h2>
+    </div>
+    <div class="p-6">
+      <form method="get" action="{{ url_for('attendee_browser.browse_attendees') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Advanced filters -->
+        <div>
+          <label for="in_ticket_type" class="block text-sm font-medium text-gray-700 mb-1">Ticket Type (CSV)</label>
+          <input type="text" id="in_ticket_type" name="in_ticket_type" value="{{ form.in_ticket_type.data }}" 
+                 placeholder="VIP,Speaker" class="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" />
+        </div>
+        <div>
+          <label for="eq_group_id" class="block text-sm font-medium text-gray-700 mb-1">Group ID</label>
+          <input type="text" id="eq_group_id" name="eq_group_id" value="{{ form.eq_group_id.data }}" 
+                 class="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" />
+        </div>
+        <div>
+          <label for="date_start" class="block text-sm font-medium text-gray-700 mb-1">Created after</label>
+          <input type="datetime-local" id="date_start" name="date_start" value="{{ form.date_start.data }}" 
+                 class="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" />
+        </div>
+        <div>
+          <label for="date_end" class="block text-sm font-medium text-gray-700 mb-1">Created before</label>
+          <input type="datetime-local" id="date_end" name="date_end" value="{{ form.date_end.data }}" 
+                 class="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" />
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit" class="px-4 py-2 bg-[#EE7700] text-white rounded-md hover:bg-[#D56800] focus:outline-none focus:ring-2 focus:ring-[#EE7700]">
+            Apply Filters
+          </button>
+          <a href="{{ url_for('attendee_browser.browse_attendees') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+            Reset
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Attendees Table -->
+  <div class="bg-white rounded-lg shadow border border-gray-100">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">Attendees</h2>
+      {% if total %}
+      <span class="text-sm text-gray-600">{{ total }} total</span>
+      {% endif %}
+    </div>
+    
+    {% if error %}
+    <div class="p-6">
+      <div class="bg-red-50 border border-red-200 rounded-md p-4">
+        <p class="text-red-800">Error: {{ error }}</p>
+      </div>
+    </div>
+    {% elif not attendees %}
+    <div class="p-6">
+      <p class="text-gray-500">No attendees found. Try adjusting filters or page.</p>
+    </div>
+    {% else %}
+    <div class="overflow-x-auto">
+      <table id="attendeesTable" class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-200">
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="name" data-sort-type="text">
+              <div class="flex items-center gap-2">
+                <span>Name</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+              <input type="text" class="column-filter mt-1 w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#EE7700]" placeholder="Filter..." data-filter="name">
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="email" data-sort-type="text">
+              <div class="flex items-center gap-2">
+                <span>Email</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+              <input type="text" class="column-filter mt-1 w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#EE7700]" placeholder="Filter..." data-filter="email">
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="company" data-sort-type="text">
+              <div class="flex items-center gap-2">
+                <span>Company</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+              <input type="text" class="column-filter mt-1 w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#EE7700]" placeholder="Filter..." data-filter="company">
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="title" data-sort-type="text">
+              <div class="flex items-center gap-2">
+                <span>Title</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+              <input type="text" class="column-filter mt-1 w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-[#EE7700]" placeholder="Filter..." data-filter="title">
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="created_at" data-sort-type="date">
+              <div class="flex items-center gap-2">
+                <span>Created</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+            </th>
+            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer select-none hover:bg-gray-100 transition-colors" data-sort="updated_at" data-sort-type="date">
+              <div class="flex items-center gap-2">
+                <span>Updated</span>
+                <span class="sort-indicator text-gray-400 text-xs"></span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% for attendee in attendees %}
+          <tr class="border-b border-gray-100 hover:bg-gray-50" 
+              data-name="{{ (attendee.get('name') or (attendee.get('first_name', '') + ' ' + attendee.get('last_name', '')).strip() or '-')|lower }}"
+              data-email="{{ (attendee.get('email') or '-')|lower }}"
+              data-company="{{ (attendee.get('company') or attendee.get('company_name') or '-')|lower }}"
+              data-title="{{ (attendee.get('title') or attendee.get('job_title') or '-')|lower }}"
+              data-created-at="{{ attendee.get('created_at', '')[:19] if attendee.get('created_at') else '' }}"
+              data-updated-at="{{ attendee.get('updated_at', '')[:19] if attendee.get('updated_at') else '' }}">
+            <td class="px-4 py-3 text-sm text-gray-900">
+              {{ attendee.get('name') or (attendee.get('first_name', '') + ' ' + attendee.get('last_name', '')).strip() or '-' }}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ attendee.get('email') or '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ attendee.get('company') or attendee.get('company_name') or '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ attendee.get('title') or attendee.get('job_title') or '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ attendee.get('created_at', '')[:19] if attendee.get('created_at') else '-' }}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">{{ attendee.get('updated_at', '')[:19] if attendee.get('updated_at') else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+      <div class="text-sm text-gray-600">
+        Page {{ page }} of {{ total_pages }}
+      </div>
+      <div class="flex gap-2">
+        {% if page > 1 %}
+          <a href="{{ build_pagination_url(page - 1) }}" 
+             class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">Prev</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+          {% if p == page %}
+            <span class="px-3 py-1 text-sm bg-[#EE7700] text-white rounded">{{ p }}</span>
+          {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+            <a href="{{ build_pagination_url(p) }}" 
+               class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">{{ p }}</a>
+          {% elif p == page - 3 or p == page + 3 %}
+            <span class="px-3 py-1 text-sm text-gray-400">...</span>
+          {% endif %}
+        {% endfor %}
+        {% if page < total_pages %}
+          <a href="{{ build_pagination_url(page + 1) }}" 
+             class="px-3 py-1 text-sm border border-gray-200 rounded hover:bg-gray-50">Next</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function() {
+  const table = document.getElementById('attendeesTable');
+  const tbody = document.getElementById('tableBody');
+  if (!table || !tbody) return;
+  
+  // Get current sort from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentSortColumn = urlParams.get('sort_column');
+  const currentSortDirection = urlParams.get('sort_direction') || 'asc';
+  
+  // Update sort indicators to show current sort
+  table.querySelectorAll('th[data-sort]').forEach(th => {
+    const indicator = th.querySelector('.sort-indicator');
+    if (th.dataset.sort === currentSortColumn) {
+      indicator.textContent = currentSortDirection === 'asc' ? '↑' : '↓';
+      indicator.className = 'sort-indicator text-[#EE7700] text-xs font-bold';
+      th.classList.add('bg-gray-100');
+    }
+  });
+  
+  // Add click handlers to sortable headers - trigger server-side sort
+  table.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', (e) => {
+      // Don't sort if clicking on filter input
+      if (e.target.tagName === 'INPUT') return;
+      
+      const column = th.dataset.sort;
+      
+      // Get current sort params from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentSortColumn = urlParams.get('sort_column');
+      const currentSortDirection = urlParams.get('sort_direction') || 'asc';
+      
+      // Toggle direction if clicking same column
+      let direction = 'asc';
+      if (currentSortColumn === column && currentSortDirection === 'asc') {
+        direction = 'desc';
+      }
+      
+      // Update URL params
+      urlParams.set('sort_column', column);
+      urlParams.set('sort_direction', direction);
+      urlParams.set('page', '1'); // Reset to first page
+      
+      // Navigate to sorted page
+      window.location.href = window.location.pathname + '?' + urlParams.toString();
+    });
+  });
+  
+  // Add filter functionality
+  function filterTable() {
+    const filters = {};
+    table.querySelectorAll('.column-filter').forEach(input => {
+      const value = input.value.trim().toLowerCase();
+      if (value) {
+        filters[input.dataset.filter] = value;
+      }
+    });
+    
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+      let show = true;
+      for (const [column, filterValue] of Object.entries(filters)) {
+        const camelKey = column.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        const cellValue = (row.dataset[camelKey] || '').toLowerCase();
+        if (!cellValue.includes(filterValue)) {
+          show = false;
+          break;
+        }
+      }
+      row.style.display = show ? '' : 'none';
+    });
+  }
+  
+  // Add filter input handlers
+  table.querySelectorAll('.column-filter').forEach(input => {
+    input.addEventListener('input', filterTable);
+    input.addEventListener('keyup', (e) => {
+      if (e.key === 'Escape') {
+        input.value = '';
+        filterTable();
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}
+
