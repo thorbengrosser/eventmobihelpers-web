@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Attendee List - Select Session{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-clipboard-list"></i>
+    Attendee List
+  </div>
+  <div class="card-body">
+    <p class="text-muted">Event: {{ event_name }}</p>
+    <form method="POST">
+      {{ form.csrf_token }}
+      <div class="form-group">
+        <label for="session-input">Session</label>
+        <div class="combo" style="position:relative;">
+          <input type="text" id="session-input" class="form-control" placeholder="Search sessions..." autocomplete="off" style="font-size:16px;padding:10px 12px;">
+          <div id="session-menu" class="combo-menu" style="position:fixed; z-index: 1000; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); max-height: 320px; overflow:auto; display:none;">
+            <ul id="session-list" style="list-style:none; margin:0; padding:6px 0;">
+              {% for value, label in form.session_id.choices %}
+              <li class="combo-item" data-id="{{ value }}" style="padding:10px 12px; cursor:pointer;">
+                {{ label }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {{ form.session_id(id="session_id", style="display:none;") }}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-list"></i>
+          Show Attendees
+        </button>
+      </div>
+    </form>
+  </div>
+  <script>
+    (function(){
+      const inputEl = document.getElementById('session-input');
+      const menuEl = document.getElementById('session-menu');
+      const listEl = document.getElementById('session-list');
+      const selectEl = document.getElementById('session_id');
+      if (!inputEl || !menuEl || !listEl || !selectEl) return;
+
+      const items = Array.from(listEl.querySelectorAll('.combo-item'));
+      let appendedToBody = false;
+
+      function positionMenu(){
+        const r = inputEl.getBoundingClientRect();
+        menuEl.style.width = r.width + 'px';
+        menuEl.style.left = r.left + 'px';
+        menuEl.style.top = (r.bottom + 4) + 'px';
+      }
+
+      function openMenu(){
+        if (!appendedToBody){
+          document.body.appendChild(menuEl);
+          appendedToBody = true;
+        }
+        positionMenu();
+        menuEl.style.display = 'block';
+      }
+      function closeMenu(){ menuEl.style.display = 'none'; clearActive(); }
+      function isOpen(){ return menuEl.style.display === 'block'; }
+
+      function filterList(q){
+        const qq = (q||'').toLowerCase();
+        let anyVisible = false;
+        items.forEach(li => {
+          const txt = li.textContent.toLowerCase();
+          const show = !qq || txt.includes(qq);
+          li.style.display = show ? 'block' : 'none';
+          if (show) anyVisible = true;
+        });
+        if (anyVisible && !isOpen()) openMenu();
+        if (!anyVisible) closeMenu();
+      }
+
+      function clearActive(){ items.forEach(li => li.classList.remove('active')); }
+      function moveActive(delta){
+        const visible = items.filter(li => li.style.display !== 'none');
+        if (!visible.length) return;
+        const idx = visible.findIndex(li => li.classList.contains('active'));
+        let nextIdx = idx + delta;
+        if (idx === -1) nextIdx = delta > 0 ? 0 : visible.length - 1;
+        if (nextIdx < 0) nextIdx = visible.length - 1;
+        if (nextIdx >= visible.length) nextIdx = 0;
+        clearActive();
+        visible[nextIdx].classList.add('active');
+        visible[nextIdx].scrollIntoView({ block: 'nearest' });
+      }
+
+      function selectLi(li){
+        const id = li.getAttribute('data-id');
+        const label = li.textContent.trim();
+        inputEl.value = label;
+        selectEl.value = id;
+        closeMenu();
+      }
+
+      inputEl.addEventListener('focus', () => {
+        filterList(inputEl.value);
+        openMenu();
+      });
+      inputEl.addEventListener('input', () => { filterList(inputEl.value); positionMenu(); });
+      window.addEventListener('scroll', () => { if (isOpen()) positionMenu(); }, true);
+      window.addEventListener('resize', () => { if (isOpen()) positionMenu(); });
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown'){ e.preventDefault(); moveActive(1); openMenu(); }
+        if (e.key === 'ArrowUp'){ e.preventDefault(); moveActive(-1); openMenu(); }
+        if (e.key === 'Enter'){
+          const active = items.find(li => li.classList.contains('active') && li.style.display !== 'none');
+          const firstVisible = items.find(li => li.style.display !== 'none');
+          const target = active || firstVisible;
+          if (target){ e.preventDefault(); selectLi(target); }
+        }
+        if (e.key === 'Escape'){ closeMenu(); }
+      });
+
+      items.forEach(li => {
+        li.addEventListener('mouseenter', () => { clearActive(); li.classList.add('active'); });
+        li.addEventListener('mouseleave', () => { li.classList.remove('active'); });
+        li.addEventListener('click', () => selectLi(li));
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!menuEl.contains(e.target) && e.target !== inputEl){ closeMenu(); }
+      });
+
+      // Minimal styling for active item
+      const style = document.createElement('style');
+      style.textContent = '.combo-item.active{background:#f1f5ff;} .combo-item:hover{background:#f7f7f9;}';
+      document.head.appendChild(style);
+    })();
+  </script>
+{% endblock %}
+
+

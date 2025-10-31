@@ -1,0 +1,17 @@
+{% extends 'base_form.html' %}
+{% block form_content %}
+  <h2>Results</h2>
+  <ul>
+    {% for result in results %}
+      <li>
+        <strong>{{ result.email }}</strong>: 
+        {% if result.success %}
+          <span style="color: green;">Success</span>
+        {% else %}
+          <span style="color: red;">Failed - {{ result.error }}</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="btn btn-secondary">Add More</a>
+{% endblock %} 

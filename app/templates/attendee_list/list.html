@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Attendee List{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-clipboard-list"></i>
+    Attendee List
+  </div>
+  <div class="card-body">
+    <div class="toolbar">
+      <a href="{{ url_for('attendee_list.print_attendees', session_id=session_id) }}" target="_blank" class="btn btn-secondary">
+        <i class="fas fa-print"></i>
+        Open Printable Version
+      </a>
+    </div>
+    {% if attendees %}
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Email</th>
+            <th>Checked</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in attendees %}
+          <tr>
+            <td>{{ a.name }}</td>
+            <td>{{ a.company }}</td>
+            <td>{{ a.email }}</td>
+            <td><input type="checkbox" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>No attendees found for this session.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+
