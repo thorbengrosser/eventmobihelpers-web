@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendee List - Print</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    @media print {
+      html, body { width: 210mm; height: 297mm; }
+    }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+    h1 { font-size: 28px; line-height: 1.2; margin: 0 0 10px 0; }
+    .meta { font-size: 15px; line-height: 1.5; color: #222; margin-bottom: 18px; }
+    .meta strong { font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px 10px; font-size: 12.5px; }
+    th { background: #f5f5f5; text-align: left; font-size: 13px; }
+    td.checkbox-cell { width: 18mm; text-align: center; }
+    input[type="checkbox"] { width: 14px; height: 14px; }
+    .print-actions { margin: 12px 0 16px 0; }
+    .btn { display: inline-block; padding: 8px 12px; background: #2d6cdf; color: #fff; text-decoration: none; border-radius: 6px; }
+    @media print { .print-actions { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="print-actions">
+    <a href="#" class="btn" onclick="window.print(); return false;">Print</a>
+  </div>
+  <h1>Attendee List</h1>
+  <div class="meta">
+    <div><strong>Event:</strong> {{ event_name }}</div>
+    {% if session_name %}<div><strong>Session:</strong> {{ session_name }}</div>{% endif %}
+    {% if room %}<div><strong>Room:</strong> {{ room }}</div>{% endif %}
+    {% if start_dt or end_dt %}
+      <div><strong>Time:</strong> {{ start_dt }}{% if end_dt %} – {{ end_dt }}{% endif %}</div>
+    {% endif %}
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Company</th>
+        <th>Email</th>
+        <th class="checkbox-cell">Checked</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in attendees %}
+      <tr>
+        <td>{{ a.name }}</td>
+        <td>{{ a.company }}</td>
+        <td>{{ a.email }}</td>
+        <td class="checkbox-cell"><input type="checkbox"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
+
+

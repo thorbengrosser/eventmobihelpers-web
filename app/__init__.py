@@ -7,6 +7,8 @@ from .manage_chat import manage_attendee_settings
 from .mass_delete_sessions import mass_delete_sessions
 from .expert_session_editor import expert_session_editor
 from .auth import bp as auth_bp
+from .add_attendee_to_session import add_attendee_to_session
+from .attendee_list import attendee_list
 import logging
 import os
 from config import config
@@ -59,6 +61,8 @@ def create_app(config_name='default'):
     app.register_blueprint(mass_delete_sessions, url_prefix='/mass_delete_sessions')
     app.register_blueprint(expert_session_editor, url_prefix='/expert_session_editor')
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(add_attendee_to_session, url_prefix='/add_attendee_to_session')
+    app.register_blueprint(attendee_list, url_prefix='/attendee_list')
 
     # Create database tables and initial admin user
     with app.app_context():

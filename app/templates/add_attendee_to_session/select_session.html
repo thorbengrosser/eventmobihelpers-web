@@ -1,0 +1,14 @@
+{% extends 'base_form.html' %}
+{% block form_content %}
+  <h2>Select Session</h2>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.session.label }}
+      {{ form.session(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+{% endblock %} 

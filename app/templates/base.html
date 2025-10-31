@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
 </head>
 <body>
     <div class="app-container">
@@ -76,6 +77,18 @@
                             <a href="{{ url_for('mass_delete_sessions.delete_sessions') }}" class="nav-link" aria-label="Mass Delete">
                                 <i class="fas fa-times"></i>
                                 <span>Mass Delete</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="nav-link" aria-label="Add Attendee to Session">
+                                <i class="fas fa-user-check"></i>
+                                <span>Add Attendee to Session</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('attendee_list.select_session') }}" class="nav-link" aria-label="Attendee List">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Attendee List</span>
                             </a>
                         </li>
                     </ul>
@@ -374,5 +387,6 @@
             }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </body>
 </html>
