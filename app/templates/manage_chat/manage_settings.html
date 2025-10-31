@@ -1,71 +1,59 @@
 {% extends "base_form.html" %}
 
-{% block title %}Manage Attendee Settings{% endblock %}
+{% block title %}Edit Attendee Settings by Group{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Manage Attendee Settings</h2>
-    <p class="text-muted">Event: {{ event_name }}</p>
-    <p class="text-muted">Number of attendees in group: {{ people|length }}</p>
-    
-    <form method="POST">
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+    <h2 class="text-2xl font-semibold text-gray-900 mb-1">Edit Attendee Settings by Group</h2>
+    <p class="text-gray-500">Event: {{ event_name }}</p>
+    <p class="text-gray-500 mb-4">Number of attendees in group: {{ people|length }}</p>
+
+    <form method="POST" class="space-y-5">
         {{ form.csrf_token }}
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Chat Settings</h5>
+
+        <div class="rounded-lg border border-gray-100 shadow-sm">
+            <div class="px-4 py-3 border-b border-gray-100">
+                <h5 class="text-sm font-semibold text-gray-800">Chat Settings</h5>
             </div>
-            <div class="card-body">
-                <div class="form-check mb-3">
-                    {{ form.enable_chat(class="form-check-input") }}
-                    {{ form.enable_chat.label(class="form-check-label") }}
+            <div class="p-4">
+                <label class="inline-flex items-center gap-2">
+                    {{ form.enable_chat(class="form-check-input w-4 h-4 text-blue-600 rounded") }}
+                    <span class="text-gray-800">{{ form.enable_chat.label.text }}</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="rounded-lg border border-gray-100 shadow-sm">
+            <div class="px-4 py-3 border-b border-gray-100">
+                <h5 class="text-sm font-semibold text-gray-800">Profile Settings</h5>
+            </div>
+            <div class="p-4 space-y-4">
+                <label class="inline-flex items-center gap-2">
+                    {{ form.is_profile_visible(class="form-check-input w-4 h-4 text-blue-600 rounded") }}
+                    <span class="text-gray-800">{{ form.is_profile_visible.label.text }}</span>
+                </label>
+                <div>
+                    {{ form.attendance_format.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ form.attendance_format(class="form-select w-full h-12 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                 </div>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Profile Settings</h5>
+        <div class="rounded-lg border border-gray-100 shadow-sm">
+            <div class="px-4 py-3 border-b border-gray-100">
+                <h5 class="text-sm font-semibold text-gray-800">Notification Settings</h5>
             </div>
-            <div class="card-body">
-                <div class="form-check mb-3">
-                    {{ form.is_profile_visible(class="form-check-input") }}
-                    {{ form.is_profile_visible.label(class="form-check-label") }}
-                </div>
-                <div class="mb-3">
-                    {{ form.attendance_format.label(class="form-label") }}
-                    {{ form.attendance_format(class="form-select") }}
-                </div>
+            <div class="p-4 space-y-3">
+                <label class="inline-flex items-center gap-2">{{ form.receive_organizer_email(class="w-4 h-4 text-blue-600 rounded") }}<span class="text-gray-800">{{ form.receive_organizer_email.label.text }}</span></label>
+                <label class="inline-flex items-center gap-2">{{ form.receive_attendee_email(class="w-4 h-4 text-blue-600 rounded") }}<span class="text-gray-800">{{ form.receive_attendee_email.label.text }}</span></label>
+                <label class="inline-flex items-center gap-2">{{ form.attendee_push_notifications(class="w-4 h-4 text-blue-600 rounded") }}<span class="text-gray-800">{{ form.attendee_push_notifications.label.text }}</span></label>
+                <label class="inline-flex items-center gap-2">{{ form.offline_notifications(class="w-4 h-4 text-blue-600 rounded") }}<span class="text-gray-800">{{ form.offline_notifications.label.text }}</span></label>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Notification Settings</h5>
-            </div>
-            <div class="card-body">
-                <div class="form-check mb-3">
-                    {{ form.receive_organizer_email(class="form-check-input") }}
-                    {{ form.receive_organizer_email.label(class="form-check-label") }}
-                </div>
-                <div class="form-check mb-3">
-                    {{ form.receive_attendee_email(class="form-check-input") }}
-                    {{ form.receive_attendee_email.label(class="form-check-label") }}
-                </div>
-                <div class="form-check mb-3">
-                    {{ form.attendee_push_notifications(class="form-check-input") }}
-                    {{ form.attendee_push_notifications.label(class="form-check-label") }}
-                </div>
-                <div class="form-check mb-3">
-                    {{ form.offline_notifications(class="form-check-input") }}
-                    {{ form.offline_notifications.label(class="form-check-label") }}
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <button type="submit" class="btn btn-primary">Update Settings</button>
-            <a href="{{ url_for('manage_attendee_settings.select_group') }}" class="btn btn-secondary">Back to Group Selection</a>
+        <div class="pt-2 flex items-center gap-2">
+            <button type="submit" class="btn btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Update Settings</button>
+            <a href="{{ url_for('manage_attendee_settings.select_group') }}" class="btn btn-secondary inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">Back to Group Selection</a>
         </div>
     </form>
 </div>

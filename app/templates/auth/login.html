@@ -1,97 +1,161 @@
 {% extends "auth/base_auth.html" %}
 
-{% block title %}Welcome Back - EventMobi Helpers{% endblock %}
+{% block title %}Sign in — EventMobi Helpers{% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0 min-vh-100">
-    <div class="row g-0 min-vh-100">
+<div class="container-fluid p-0 min-vh-100 position-relative overflow-hidden">
+    <!-- INSANE Background Ornaments -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events:none; z-index:0;">
+        <!-- Giant gradient orb -->
+        <div class="position-absolute bg-orb" style="width: 680px; height: 680px; border-radius: 9999px; background: radial-gradient(closest-side, rgba(238,119,0,0.35), rgba(238,119,0,0) 70%); top: -120px; left: -140px;"></div>
+        <!-- Secondary orb -->
+        <div class="position-absolute bg-orb" style="width: 520px; height: 520px; border-radius: 9999px; background: radial-gradient(closest-side, rgba(39,96,146,0.28), rgba(39,96,146,0) 70%); bottom: -140px; right: -120px; animation-delay: 6s;"></div>
+    </div>
+
+    <style>
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        @keyframes glowPulse { 0%, 100% { box-shadow: 0 12px 28px rgba(238,119,0,0.28); } 50% { box-shadow: 0 16px 44px rgba(238,119,0,0.44); } }
+        @keyframes borderShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .gradient-border { position: relative; border-radius: 20px; padding: 1px; background: linear-gradient(90deg, #EE7700, #FFB81C, #00C389, #276092, #EE7700); background-size: 300% 300%; animation: borderShift 6s ease infinite; }
+        .gradient-border > .card { border-radius: 19px; }
+        .cta-glow { animation: glowPulse 2.2s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce){ .bg-orb{ animation: none !important; } .cta-glow{ animation: none !important; } }
+    </style>
+
+    <div class="row g-0 min-vh-100 position-relative" style="z-index:1;">
         <!-- Left side - Hero Section -->
         <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center p-5">
-            <div class="text-center" style="max-width: 480px;">
-                <img src="{{ url_for('static', filename='images/hero2.png') }}" 
-                     alt="Event Control Center" 
-                     class="img-fluid mb-4" 
-                     style="max-width: 80%;">
-                <h2 class="hero-text">Your EventMobi Power Tool</h2>
-                <p class="hero-subtext">Do things you're not supposed to do!</p>
+            <div class="text-center" style="max-width: 620px;">
+                <div class="mb-4 position-relative">
+                    <img src="{{ url_for('static', filename='images/hero3.png') }}" 
+                         alt="Event control center" 
+                         class="img-fluid" 
+                         style="max-width: 86%; border-radius: 18px; box-shadow: 0 24px 60px rgba(29,37,45,0.20);">
+                    <div class="position-absolute start-50 translate-middle-x" style="bottom: -14px;">
+                        <button class="sticker" type="button" aria-label="Ten times faster workflows">10× FASTER WORKFLOWS</button>
+                    </div>
+                </div>
+                <h1 class="mb-2" style="font-family:Lato; font-weight:900; letter-spacing:-0.02em;">Launch Quantum-Grade Vibes™</h1>
+                <p class="hero-subtext mb-3">Ship vibes at ludicrous speed. Friction paywalls sold separately.</p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap" style="gap: 10px;">
+                    <span class="badge bg-light text-dark" style="border:1px solid #E6E8EA;"><strong>NO-CODE</strong></span>
+                    <span class="badge bg-light text-dark" style="border:1px solid #E6E8EA;"><strong>YES-VIBES</strong></span>
+                    <span class="badge bg-light text-dark" style="border:1px solid #E6E8EA;"><strong>AI-ISH</strong></span>
+                    <span class="badge bg-light text-dark" style="border:1px solid #E6E8EA;"><strong>99.97% Uptime†</strong></span>
+                </div>
+                <div class="mt-1" style="font-size:.8rem; color:#7C878E;">† between naps</div>
+                <!-- Social proof mega cliché -->
+                <div class="mt-4" aria-label="Trusted by teams">
+                    <div class="text-muted mb-2" style="font-size: .85rem;">Trusted by 4.5 out of 5 dentists who prototype.</div>
+                    <!-- Marquee of logos -->
+                    <div class="position-relative overflow-hidden" style="mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);">
+                        <div style="white-space: nowrap; display:flex; gap: 36px; width:200%; animation: marquee 22s linear infinite;">
+                            <div class="d-flex justify-content-center align-items-center" style="gap: 36px; width:50%; opacity:.8;">
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Acme</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Globex</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Initech</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Umbrella</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Stark</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Wayne</span>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center" style="gap: 36px; width:50%; opacity:.8;">
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Acme</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Globex</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Initech</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Umbrella</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Stark</span>
+                                <span class="text-uppercase" style="letter-spacing:.14em; font-weight:900;">Wayne</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Rotating one-liners (static first line for now) -->
+                <div class="mt-3 text-muted" style="font-size:.9rem;">“Cut our vibe latency by 83%.” — <em>CTO, Hyperborea Inc.</em></div>
             </div>
         </div>
 
         <!-- Right side - Login Form -->
         <div class="col-lg-6 d-flex align-items-center justify-content-center section-padding">
-            <div class="w-100" style="max-width: 400px;">
-                <!-- Logo -->
-                <div class="text-center mb-4">
-                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EventMobi Helpers" class="mb-4" style="height: 40px;">
-                    <h1 class="h3 mb-3">Welcome Back</h1>
-                    <p class="text-muted">Access your event management tools</p>
+            <div class="w-100" style="max-width: 480px;">
+                <!-- Headline / CTA -->
+                <div class="text-center mb-3">
+                    <div class="mb-3 position-relative d-inline-block">
+                        <div class="position-absolute" style="inset:-10px -14px -6px -14px; background: radial-gradient(closest-side, rgba(238,119,0,0.22), rgba(238,119,0,0)); filter: blur(14px); border-radius:18px;"></div>
+                        <i class="fas fa-calendar-check position-relative" style="font-size: 36px; color: #EE7700;"></i>
+                    </div>
+                    <h2 class="h3 mb-2" style="font-weight:900;">Welcome back</h2>
+                    <p class="text-muted m-0" style="color:#5B6770 !important;">Sign in to continue</p>
                 </div>
 
-                <!-- Login Card -->
-                <div class="card fade-in">
-                    <div class="card-body p-4">
-                        <form method="post" novalidate>
-                            {{ form.hidden_tag() }}
-                            <div class="mb-3">
-                                {{ form.username.label(class="form-label") }}
-                                {{ form.username(class="form-control", placeholder="Enter your email") }}
-                                {% for error in form.username.errors %}
-                                <span class="text-danger">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            <div class="mb-3">
-                                {{ form.password.label(class="form-label") }}
-                                {{ form.password(class="form-control", placeholder="Enter your password") }}
-                                {% for error in form.password.errors %}
-                                <span class="text-danger">{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                            <div class="mb-4 form-check">
-                                {{ form.remember_me(class="form-check-input") }}
-                                {{ form.remember_me.label(class="form-check-label") }}
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
-                                <span>Sign In</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </form>
+                <!-- Pricing toggle (visual only) -->
+                <div class="d-flex align-items-center justify-content-center mb-3" aria-hidden="true">
+                    <div class="p-1" style="background:#F1F3F5; border-radius:9999px; display:inline-flex; gap:6px;">
+                        <div class="px-3 py-1" style="background:#fff; border-radius:9999px; box-shadow:0 6px 14px rgba(0,0,0,0.06); font-weight:700;">Monthly</div>
+                        <div class="px-3 py-1 text-muted" style="font-weight:700;">Yearly</div>
+                        <div class="px-3 py-1 text-muted" title="Requires soul-binding" style="font-weight:700;">Eternally 🕯️</div>
                     </div>
                 </div>
 
-                <!-- About Box -->
-                <div class="card mt-4 fade-in">
-                    <div class="card-body p-4">
-                        <h2 class="h5 mb-3">About EventMobi Helpers</h2>
-                        <p class="mb-3">Does some things you wish EventMobi did, but doesn't right now:</p>
-                        <ul class="feature-list">
-                            <li>Efficient session management</li>
-                            <li>Smart group organization</li>
-                            <li>Real-time updates</li>
-                            <li>Seamless EventMobi integration</li>
-                        </ul>
-                        <div class="mt-3">
-                            <a href="mailto:admin@example.com?subject=Account Request for EventMobi Helpers&body=Please provide the following information:%0D%0A%0D%0A1. Your name:%0D%0A2. Your organization:%0D%0A3. Your role:%0D%0A4. How you plan to use EventMobi Helpers:%0D%0A5. Why you need access to the platform:%0D%0A%0D%0AThank you for your interest!" 
-                               class="text-decoration-none d-flex align-items-center">
-                                <i class="fas fa-envelope text-primary me-2"></i>
-                                Request an account
-                            </a>
+                <!-- Login Card with animated gradient border -->
+                <div class="gradient-border fade-in" style="margin-top: 4px;">
+                    <div class="card" style="border-radius: 20px; box-shadow: 0 18px 48px rgba(29,37,45,0.12);">
+                        <div class="card-body p-4">
+                            <form method="post" novalidate>
+                                {{ form.hidden_tag() }}
+                                <div class="mb-3">
+                                    {{ form.username.label(class="form-label") }}
+                                    {{ form.username(class="form-control", placeholder="name@domain.com", id="emailField") }}
+                                    {% for error in form.username.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        {{ form.password.label(class="form-label m-0") }}
+                                        <button type="button" id="cosmicPw" class="btn btn-secondary btn-sm" style="padding:.25rem .5rem; font-size:.8rem;">Generate Cosmic Password</button>
+                                    </div>
+                                    <div class="position-relative">
+                                        {{ form.password(class="form-control", placeholder="Password", id="passwordField", style="padding-right: 3rem;") }}
+                                        <button type="button" id="togglePassword" class="btn btn-sm position-absolute end-0 top-0 h-100 d-flex align-items-center justify-content-center" style="background: transparent; border: none; color: #5B6770; padding: 0 0.75rem; cursor: pointer; z-index: 10;" aria-label="Toggle password visibility">
+                                            <i class="fas fa-eye" id="passwordIcon"></i>
+                                        </button>
+                                    </div>
+                                    {% for error in form.password.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mb-3 d-flex align-items-center" style="gap:8px;">
+                                    <div class="form-check m-0">
+                                        {{ form.remember_me(class="form-check-input", id="rememberMe") }}
+                                        {{ form.remember_me.label(class="form-check-label m-0", id="rememberLabel") }}
+                                    </div>
+                                    <div class="ms-auto">
+                                        <a href="mailto:tg@eventmobi.com?subject=Request%20Access%20to%20EventMobi%20Helpers&body=Hi%20Team%2C%0D%0A%0D%0APlease%20grant%20me%20access%20to%20EventMobi%20Helpers.%0D%0A%0D%0AName%3A%20%0D%0AOrganization%3A%20%0D%0ARole%3A%20%0D%0A%0D%0AThank%20you!" class="text-decoration-none" style="color:#276092; font-size: 0.9rem;">Request access</a>
+                                    </div>
+                                </div>
+                                <div class="visually-hidden" aria-live="polite" id="btnLive"></div>
+                                <button type="submit" id="signIn" class="btn btn-primary btn-chonk cta-glow w-100 d-flex align-items-center justify-content-center gap-2">
+                                    <span>Login</span>
+                                </button>
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-secondary" style="background: transparent; border: 1px solid #E6E8EA;">I’m Just Browsing, Please Respect My Journey</button>
+                                </div>
+                                <!-- Micro feature ticks -->
+                                <div class="d-flex justify-content-center text-muted mt-3" style="gap:14px; font-size:.9rem;">
+                                    <span title="Works with things that start with S.">SSO-ish</span>
+                                    <span title="*Reasonably. We use TLS and common sense.">Secure*</span>
+                                    <span title="Measured on a laptop that was plugged in.">Fast</span>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
 
-                <!-- Pro Tip Toast -->
-                <div class="toast-container position-fixed bottom-0 end-0 p-3">
-                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <i class="fas fa-lightbulb text-warning me-2"></i>
-                            <strong class="me-auto">Pro Tip</strong>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            You can edit sessions in bulk once logged in
-                        </div>
-                    </div>
+                <!-- Bottom extras -->
+                <div class="text-center mt-3">
+                    <small class="text-muted">By admins, for admins, supervised by a very patient database.</small>
                 </div>
+
             </div>
         </div>
     </div>
@@ -100,18 +164,94 @@
 
 {% block extra_js %}
 <script>
-    // Initialize tooltips
-    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-    var toastList = toastElList.map(function(toastEl) {
-        return new bootstrap.Toast(toastEl, {
-            autohide: true,
-            delay: 5000
-        })
-    });
-    // Only show toast if user hasn't seen it before
-    if (!localStorage.getItem('proTipShown')) {
-        toastList.forEach(toast => toast.show());
-        localStorage.setItem('proTipShown', 'true');
-    }
+    // Respect reduced motion
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Email placeholder morphing
+    (function(){
+        const email = document.getElementById('emailField');
+        if (!email) return;
+        const variants = ['founder@stealth.ai', 'you@vibe.cool'];
+        let idx = 0; let timer;
+        function start(){
+            timer = setInterval(()=>{ email.placeholder = variants[idx % variants.length]; idx++; }, 1400);
+        }
+        email.addEventListener('focus', ()=>{ email.placeholder = 'name@domain.com'; if (!reduceMotion) start(); });
+        email.addEventListener('blur', ()=>{ clearInterval(timer); email.placeholder = 'name@domain.com'; });
+    })();
+
+    // Cosmic password generator
+    (function(){
+        const btn = document.getElementById('cosmicPw');
+        const pw = document.getElementById('passwordField');
+        if (!btn || !pw) return;
+        const words = ['horse','staple','vibes','quantum','aura','spark','matrix','orbit','nebula','pebble','mango','coral'];
+        const emojis = ['\uD83D\uDD2E','\u2728','\uD83D\uDD25','\uD83C\uDF1F','\uD83D\uDCA5'];
+        function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+        function generate(){
+            const parts = [pick(words), pick(words), pick(words), pick(emojis), Math.floor(10+Math.random()*89)];
+            return parts.join('-');
+        }
+        btn.addEventListener('click', ()=>{
+            pw.value = generate();
+            btn.textContent = '✨ Done';
+            setTimeout(()=> btn.textContent = 'Generate Cosmic Password', 1200);
+        });
+    })();
+
+    // Password visibility toggle
+    (function(){
+        const toggle = document.getElementById('togglePassword');
+        const pw = document.getElementById('passwordField');
+        const icon = document.getElementById('passwordIcon');
+        if (!toggle || !pw || !icon) return;
+        toggle.addEventListener('click', ()=>{
+            const isPassword = pw.type === 'password';
+            pw.type = isPassword ? 'text' : 'password';
+            icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
+    })();
+
+    // Remember Us hover
+    (function(){
+        const label = document.getElementById('rememberLabel');
+        if (!label) return;
+        const original = label.textContent;
+        label.addEventListener('mouseenter', ()=> label.innerHTML = 'Remember <em>Us</em>');
+        label.addEventListener('mouseleave', ()=> label.textContent = original);
+    })();
+
+    // Button label theatre with aria-live
+    (function(){
+        const btn = document.getElementById('signIn');
+        const live = document.getElementById('btnLive');
+        if (!btn || !live) return;
+        const steps = ['Authenticating…', 'Negotiating with servers…', 'Respecting boundaries… ✅'];
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const original = btn.textContent;
+            for (const t of steps) {
+                btn.textContent = t;
+                live.textContent = t;
+                await new Promise(r => setTimeout(r, 600));
+            }
+            // submit the enclosing form
+            const form = btn.closest('form');
+            if (form) form.submit();
+            else btn.textContent = original;
+        });
+    })();
+
+    // Caps Lock tiny modal (simple alert for now)
+    (function(){
+        const pw = document.getElementById('passwordField');
+        if (!pw) return;
+        pw.addEventListener('keydown', (e)=>{
+            if (e.getModifierState && e.getModifierState('CapsLock')) {
+                // lightweight hint without heavy modal
+                pw.setAttribute('title', 'Caps Lock: a mood.');
+            }
+        });
+    })();
 </script>
 {% endblock %} 

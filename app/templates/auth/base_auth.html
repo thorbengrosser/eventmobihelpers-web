@@ -6,115 +6,67 @@
     <title>{% block title %}EventMobi Helpers{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
-        :root {
-            --primary: #FF6B35;
-            --primary-dark: #E85A2A;
-            --primary-light: #FF8B5F;
-            --primary-subtle: rgba(255, 107, 53, 0.1);
+        :root{
+            --brand-orange:#EE7700;
+            --brand-orange-dark:#D56800;
+            --brand-orange-subtle: rgba(238,119,0,0.08);
+            --brand-grey:#5B6770;
+            --brand-charcoal:#1D252D;
+            --brand-mid:#7C878E;
+            --border:#E6E8EA;
         }
-
-        body {
-            background: linear-gradient(135deg, var(--primary-subtle) 0%, #fff 100%);
-            min-height: 100vh;
+        body{
+            font-family:'Nunito', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            color:var(--brand-charcoal);
+            background: linear-gradient(135deg, var(--brand-orange-subtle) 0%, #fff 100%);
+            min-height:100vh;
         }
-
-        .btn-primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            border-radius: 8px;
+        h1,h2,h3,.hero-text{ font-family:'Lato', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+        .btn-primary{
+            background-color:var(--brand-orange);
+            border-color:var(--brand-orange);
+            padding:0.75rem 1.25rem;
+            font-weight:700;
+            border-radius:10px;
         }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+        .btn-primary:hover{
+            background-color:var(--brand-orange-dark);
+            border-color:var(--brand-orange-dark);
+            transform:translateY(-1px);
+            box-shadow:0 6px 16px rgba(238,119,0,0.22);
         }
-
-        .text-primary {
-            color: var(--primary) !important;
+        .text-primary{ color:var(--brand-orange)!important; }
+        .card{
+            border-radius:14px;
+            border:1px solid var(--border);
+            box-shadow:0 6px 24px rgba(0,0,0,0.06);
+            transition:transform .2s ease, box-shadow .2s ease;
+            background:#fff;
         }
-
-        .card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        .card:hover{ transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,0.08); }
+        .form-control{
+            border-radius:10px;
+            padding:0.75rem 1rem;
+            border:1px solid var(--border);
+            transition:all .2s ease;
         }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        .form-control:focus{
+            border-color:var(--brand-orange);
+            box-shadow:0 0 0 3px rgba(238,119,0,0.15);
         }
-
-        .form-control {
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e0e0e0;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-padding {
-            padding: 3rem 0;
-        }
-
-        @media (min-width: 992px) {
-            .section-padding {
-                padding: 4rem 0;
-            }
-        }
-
-        .hero-text {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .hero-subtext {
-            font-size: 1rem;
-            color: #6c757d;
-            line-height: 1.5;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .feature-list li {
-            padding: 0.5rem 0;
-            color: #4a5568;
-        }
-
-        .feature-list li:not(:last-child) {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
+        .form-label{ font-weight:700; color:var(--brand-charcoal); margin-bottom:.5rem; }
+        .section-padding{ padding:3rem 0; }
+        @media (min-width: 992px){ .section-padding{ padding:4rem 0; } }
+        .hero-text{ font-size:1.5rem; font-weight:900; color:var(--brand-charcoal); margin-bottom:.5rem; }
+        .hero-subtext{ font-size:1rem; color:var(--brand-grey); }
+        .feature-list{ list-style:none; padding:0; margin:0; }
+        .feature-list li{ padding:.5rem 0; color:var(--brand-grey); }
+        .feature-list li:not(:last-child){ border-bottom:1px solid rgba(0,0,0,0.05); }
+        @keyframes fadeIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+        .fade-in{ animation:fadeIn .5s ease-out; }
     </style>
 </head>
 <body>

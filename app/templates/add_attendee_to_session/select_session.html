@@ -1,14 +1,135 @@
-{% extends 'base_form.html' %}
-{% block form_content %}
-  <h2>Select Session</h2>
-  <form method="post">
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-      {{ form.session.label }}
-      {{ form.session(class="form-control") }}
-    </div>
-    <div class="form-group">
-      {{ form.submit(class="btn btn-primary") }}
-    </div>
-  </form>
-{% endblock %} 
+{% extends 'base.html' %}
+{% block title %}Add Attendees to Session by E-Mail - Select Session{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow border border-gray-100">
+  <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2 text-gray-900">
+    <i class="fas fa-user-check"></i>
+    <span class="font-semibold">Add Attendees to Session by E-Mail</span>
+  </div>
+  <div class="p-6">
+    <p class="text-gray-500 mb-4">Event: {{ event_name }}</p>
+    <form method="POST" class="space-y-4">
+      {{ form.csrf_token }}
+      <div>
+        <label for="session-input" class="block text-sm font-medium text-gray-700 mb-1">Session</label>
+        <div class="relative">
+          <input type="text" id="session-input" class="w-full h-12 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" placeholder="Search sessions..." autocomplete="off">
+          <div id="session-menu" class="fixed z-[1000] bg-white border border-gray-200 rounded-lg shadow-xl max-h-80 overflow-auto hidden">
+            <ul id="session-list" class="list-none m-0 py-1">
+              {% for value, label in form.session.choices %}
+              <li class="combo-item px-3 py-2 cursor-pointer" data-id="{{ value }}">{{ label }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {{ form.session(id="session_id", style="display:none;") }}
+      </div>
+      <div class="pt-2">
+        <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[#EE7700] text-white hover:bg-[#D56800] focus:outline-none focus:ring-2 focus:ring-[#EE7700]">
+          <i class="fas fa-arrow-right"></i>
+          Next
+        </button>
+      </div>
+    </form>
+  </div>
+  <script>
+    (function(){
+      const inputEl = document.getElementById('session-input');
+      const menuEl = document.getElementById('session-menu');
+      const listEl = document.getElementById('session-list');
+      const selectEl = document.getElementById('session_id');
+      if (!inputEl || !menuEl || !listEl || !selectEl) return;
+
+      const items = Array.from(listEl.querySelectorAll('.combo-item'));
+      let appendedToBody = false;
+
+      function positionMenu(){
+        const r = inputEl.getBoundingClientRect();
+        menuEl.style.width = r.width + 'px';
+        menuEl.style.left = r.left + 'px';
+        menuEl.style.top = (r.bottom + 4) + 'px';
+      }
+
+      function openMenu(){
+        if (!appendedToBody){
+          document.body.appendChild(menuEl);
+          appendedToBody = true;
+        }
+        positionMenu();
+        menuEl.style.display = 'block';
+        menuEl.classList.remove('hidden');
+      }
+      function closeMenu(){ menuEl.style.display = 'none'; menuEl.classList.add('hidden'); clearActive(); }
+      function isOpen(){ return menuEl.style.display === 'block' || !menuEl.classList.contains('hidden'); }
+
+      function filterList(q){
+        const qq = (q||'').toLowerCase();
+        let anyVisible = false;
+        items.forEach(li => {
+          const txt = li.textContent.toLowerCase();
+          const show = !qq || txt.includes(qq);
+          li.style.display = show ? 'block' : 'none';
+          if (show) anyVisible = true;
+        });
+        if (anyVisible && !isOpen()) openMenu();
+        if (!anyVisible) closeMenu();
+      }
+
+      function clearActive(){ items.forEach(li => li.classList.remove('active')); }
+      function moveActive(delta){
+        const visible = items.filter(li => li.style.display !== 'none');
+        if (!visible.length) return;
+        const idx = visible.findIndex(li => li.classList.contains('active'));
+        let nextIdx = idx + delta;
+        if (idx === -1) nextIdx = delta > 0 ? 0 : visible.length - 1;
+        if (nextIdx < 0) nextIdx = visible.length - 1;
+        if (nextIdx >= visible.length) nextIdx = 0;
+        clearActive();
+        visible[nextIdx].classList.add('active');
+        visible[nextIdx].scrollIntoView({ block: 'nearest' });
+      }
+
+      function selectLi(li){
+        const id = li.getAttribute('data-id');
+        const label = li.textContent.trim();
+        inputEl.value = label;
+        selectEl.value = id;
+        closeMenu();
+      }
+
+      inputEl.addEventListener('focus', () => {
+        filterList(inputEl.value);
+        openMenu();
+      });
+      inputEl.addEventListener('input', () => { filterList(inputEl.value); positionMenu(); });
+      window.addEventListener('scroll', () => { if (isOpen()) positionMenu(); }, true);
+      window.addEventListener('resize', () => { if (isOpen()) positionMenu(); });
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown'){ e.preventDefault(); moveActive(1); openMenu(); }
+        if (e.key === 'ArrowUp'){ e.preventDefault(); moveActive(-1); openMenu(); }
+        if (e.key === 'Enter'){
+          const active = items.find(li => li.classList.contains('active') && li.style.display !== 'none');
+          const firstVisible = items.find(li => li.style.display !== 'none');
+          const target = active || firstVisible;
+          if (target){ e.preventDefault(); selectLi(target); }
+        }
+        if (e.key === 'Escape'){ closeMenu(); }
+      });
+
+      items.forEach(li => {
+        li.addEventListener('mouseenter', () => { clearActive(); li.classList.add('active'); });
+        li.addEventListener('mouseleave', () => { li.classList.remove('active'); });
+        li.addEventListener('click', () => selectLi(li));
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!menuEl.contains(e.target) && e.target !== inputEl){ closeMenu(); }
+      });
+
+      const style = document.createElement('style');
+      style.textContent = '.combo-item.active{background:#FFF3E8;} .combo-item:hover{background:#FFF8F0;}';
+      document.head.appendChild(style);
+    })();
+  </script>
+</div>
+{% endblock %}

@@ -1,17 +1,22 @@
-{% extends 'base_form.html' %}
-{% block form_content %}
-  <h2>Results</h2>
-  <ul>
+{% extends 'base.html' %}
+{% block title %}Add Attendees to Session by E-Mail - Results{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-4">Results</h2>
+  <ul class="space-y-2">
     {% for result in results %}
-      <li>
-        <strong>{{ result.email }}</strong>: 
+      <li class="flex items-center justify-between px-3 py-2 rounded border border-gray-100">
+        <span class="font-medium text-gray-900">{{ result.email }}</span>
         {% if result.success %}
-          <span style="color: green;">Success</span>
+          <span class="text-green-600">Success</span>
         {% else %}
-          <span style="color: red;">Failed - {{ result.error }}</span>
+          <span class="text-red-600">Failed — {{ result.error }}</span>
         {% endif %}
       </li>
     {% endfor %}
   </ul>
-  <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="btn btn-secondary">Add More</a>
+  <div class="mt-4">
+    <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-[#FFF3E8] focus:outline-none focus:ring-2 focus:ring-[#EE7700]">Add More</a>
+  </div>
+</div>
 {% endblock %} 

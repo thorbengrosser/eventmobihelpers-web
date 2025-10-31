@@ -9,14 +9,14 @@
 </div>
 
 <div class="card-grid">
-    <!-- Content Management -->
+    <!-- Advanced Session Editor -->
     <div class="card">
         <div class="card-header">
             <i class="fas fa-edit"></i>
-            <h2 class="card-title">Session Editor</h2>
+            <h2 class="card-title">Advanced Session Editor</h2>
         </div>
         <div class="card-body">
-            <p class="card-description">Edit session details and session settings, including start- and end times that go into the next day.</p>
+            <p class="card-description">Edit session details and settings, including cross-day start and end times.</p>
             <a href="{{ url_for('expert_session_editor.select_session') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
                 Open Editor
@@ -24,11 +24,11 @@
         </div>
     </div>
 
-    <!-- People Management -->
+    <!-- Add People to Groups by E-Mail -->
     <div class="card">
         <div class="card-header">
             <i class="fas fa-user-plus"></i>
-            <h2 class="card-title">Add People</h2>
+            <h2 class="card-title">Add People to Groups by E-Mail</h2>
         </div>
         <div class="card-body">
             <p class="card-description">Add multiple people to groups by entering their email addresses.</p>
@@ -42,13 +42,43 @@
     <div class="card">
         <div class="card-header">
             <i class="fas fa-users-cog"></i>
-            <h2 class="card-title">Manage Attendee Settings</h2>
+            <h2 class="card-title">Edit Attendee Settings by Group</h2>
         </div>
         <div class="card-body">
-            <p class="card-description">Configure attendee settings for entire groups including chat, profile visibility, and notifications.</p>
+            <p class="card-description">Configure chat, profile visibility, and notification settings for entire groups at once.</p>
             <a href="{{ url_for('manage_attendee_settings.select_group') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
-                Manage Settings
+                Edit Settings
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Attendees to Session by E-Mail -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-user-check"></i>
+            <h2 class="card-title">Add Attendees to Session by E-Mail</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Add attendees to a selected session by pasting their email addresses.</p>
+            <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Add Attendees
+            </a>
+        </div>
+    </div>
+
+    <!-- Print Attendee List -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-clipboard-list"></i>
+            <h2 class="card-title">Print Attendee List</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Search for a session and print a clean, formatted attendee list.</p>
+            <a href="{{ url_for('attendee_list.select_session') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Print List
             </a>
         </div>
     </div>
@@ -57,13 +87,13 @@
     <div class="card">
         <div class="card-header">
             <i class="fas fa-trash-alt"></i>
-            <h2 class="card-title">Delete Sessions</h2>
+            <h2 class="card-title">Delete Sessions by Track</h2>
         </div>
         <div class="card-body">
-            <p class="card-description">Remove sessions by track in bulk.</p>
+            <p class="card-description">Select a track to remove all sessions in bulk.</p>
             <a href="{{ url_for('delete_sessions_group.select_track') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
-                Delete Sessions
+                Delete by Track
             </a>
         </div>
     </div>
@@ -71,13 +101,13 @@
     <div class="card">
         <div class="card-header">
             <i class="fas fa-times"></i>
-            <h2 class="card-title">Mass Delete by ID</h2>
+            <h2 class="card-title">Delete Sessions by ID</h2>
         </div>
         <div class="card-body">
-            <p class="card-description">Delete multiple sessions at once by ID.</p>
+            <p class="card-description">Enter a list of session IDs to delete those sessions in one action.</p>
             <a href="{{ url_for('mass_delete_sessions.delete_sessions') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
-                Mass Delete
+                Delete by ID
             </a>
         </div>
     </div>

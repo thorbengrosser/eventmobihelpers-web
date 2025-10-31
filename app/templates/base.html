@@ -6,10 +6,11 @@
     <meta name="description" content="EventMobi Helpers - A collection of tools for managing EventMobi events">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}EventMobi Helpers{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    
 </head>
 <body>
     <div class="app-container">
@@ -36,9 +37,9 @@
                     <h3 class="nav-section-title">Content</h3>
                     <ul>
                         <li>
-                            <a href="{{ url_for('expert_session_editor.select_session') }}" class="nav-link" aria-label="Session Editor">
+                            <a href="{{ url_for('expert_session_editor.select_session') }}" class="nav-link" aria-label="Advanced Session Editor">
                                 <i class="fas fa-edit"></i>
-                                <span>Session Editor</span>
+                                <span>Advanced Session Editor</span>
                             </a>
                         </li>
                     </ul>
@@ -49,15 +50,15 @@
                     <h3 class="nav-section-title">People</h3>
                     <ul>
                         <li>
-                            <a href="{{ url_for('add_people_to_group.select_group') }}" class="nav-link" aria-label="Add People">
+                            <a href="{{ url_for('add_people_to_group.select_group') }}" class="nav-link" aria-label="Add People to Groups by E-Mail">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Add People</span>
+                                <span>Add People to Groups by E-Mail</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('manage_attendee_settings.select_group') }}">
                                 <i class="fas fa-users-cog"></i>
-                                <span>Manage Attendee Settings</span>
+                                <span>Edit Attendee Settings by Group</span>
                             </a>
                         </li>
                     </ul>
@@ -68,27 +69,27 @@
                     <h3 class="nav-section-title">Sessions</h3>
                     <ul>
                         <li>
-                            <a href="{{ url_for('delete_sessions_group.select_track') }}" class="nav-link" aria-label="Delete Sessions">
+                            <a href="{{ url_for('delete_sessions_group.select_track') }}" class="nav-link" aria-label="Delete Sessions by Track">
                                 <i class="fas fa-trash-alt"></i>
-                                <span>Delete Sessions</span>
+                                <span>Delete Sessions by Track</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('mass_delete_sessions.delete_sessions') }}" class="nav-link" aria-label="Mass Delete">
+                            <a href="{{ url_for('mass_delete_sessions.delete_sessions') }}" class="nav-link" aria-label="Delete Sessions by ID">
                                 <i class="fas fa-times"></i>
-                                <span>Mass Delete</span>
+                                <span>Delete Sessions by ID</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="nav-link" aria-label="Add Attendee to Session">
+                            <a href="{{ url_for('add_attendee_to_session.select_session') }}" class="nav-link" aria-label="Add Attendees to Session by E-Mail">
                                 <i class="fas fa-user-check"></i>
-                                <span>Add Attendee to Session</span>
+                                <span>Add Attendees to Session by E-Mail</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('attendee_list.select_session') }}" class="nav-link" aria-label="Attendee List">
+                            <a href="{{ url_for('attendee_list.select_session') }}" class="nav-link" aria-label="Print Attendee List">
                                 <i class="fas fa-clipboard-list"></i>
-                                <span>Attendee List</span>
+                                <span>Print Attendee List</span>
                             </a>
                         </li>
                     </ul>
@@ -103,25 +104,39 @@
                     <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle Sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="event-selector">
-                        <button class="event-dropdown-toggle" id="event-dropdown-toggle">
+                    <div class="relative" id="event-selector">
+                        <button
+                            id="event-dropdown-toggle"
+                            type="button"
+                            class="inline-flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 rounded-md bg-white text-gray-800 hover:text-[#EE7700] hover:border-[#EE7700] focus:outline-none focus:ring-2 focus:ring-[#EE7700] focus:ring-offset-2"
+                            aria-haspopup="listbox"
+                            aria-expanded="false"
+                            aria-controls="event-dropdown"
+                        >
                             <i class="fas fa-calendar"></i>
                             <span id="current-event-name">{{ event_name or 'Select Event' }}</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-chevron-down ml-1 text-gray-400"></i>
                         </button>
-                        <div class="event-dropdown" id="event-dropdown">
-                            <div class="event-dropdown-header">
-                                <h3>Select Event</h3>
-                                <button class="event-dropdown-close" id="event-dropdown-close">
+                        <div
+                            id="event-dropdown"
+                            class="absolute left-0 mt-2 w-80 origin-top-left rounded-md bg-white shadow-xl ring-1 ring-black/5 hidden"
+                            role="listbox"
+                            tabindex="-1"
+                            aria-labelledby="event-dropdown-toggle"
+                        >
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                                <h3 class="m-0 text-sm font-semibold text-gray-800">Select Event</h3>
+                                <button id="event-dropdown-close" type="button" class="p-1 text-gray-500 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-[#EE7700]" aria-label="Close event list">
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
-                            <div class="event-dropdown-body">
-                                <div class="event-search">
-                                    <input type="text" id="event-search" placeholder="Search events...">
+                            <div class="max-h-96 overflow-y-auto">
+                                <div class="p-3 border-b border-gray-100">
+                                    <label for="event-search" class="sr-only">Search events</label>
+                                    <input id="event-search" type="text" placeholder="Search events..." class="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EE7700]" />
                                 </div>
-                                <div class="event-list" id="event-list">
-                                    <!-- Events will be populated here -->
+                                <div id="event-list" class="p-2">
+                                    <!-- Events populated here -->
                                 </div>
                             </div>
                         </div>
@@ -151,9 +166,7 @@
                         <i class="fas fa-key"></i>
                         Change API Key
                     </a>
-                    <button class="icon-button" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                    </button>
+                    
                 </div>
             </header>
 
@@ -231,27 +244,34 @@
 
             // Search functionality
             const searchInput = document.querySelector('.search-input');
+            const navSections = document.querySelectorAll('.nav-section');
             const navLinks = document.querySelectorAll('.nav-link');
 
+            function resetMenu() {
+                navLinks.forEach(link => { link.style.display = 'flex'; });
+                navSections.forEach(section => { section.style.display = 'block'; });
+            }
+
             searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                
+                const searchTerm = e.target.value.trim().toLowerCase();
+
+                if (!searchTerm) {
+                    resetMenu();
+                    return;
+                }
+
+                // Show only matching links
                 navLinks.forEach(link => {
-                    const text = link.textContent.toLowerCase();
-                    const section = link.closest('.nav-section');
-                    
-                    if (text.includes(searchTerm)) {
-                        link.style.display = 'flex';
-                        section.style.display = 'block';
-                    } else {
-                        link.style.display = 'none';
-                    }
-                    
-                    // Hide section if all links are hidden
-                    const visibleLinks = section.querySelectorAll('.nav-link[style="display: flex"]');
-                    if (visibleLinks.length === 0) {
-                        section.style.display = 'none';
-                    }
+                    const text = (link.textContent || '').toLowerCase();
+                    const matches = text.includes(searchTerm);
+                    link.style.display = matches ? 'flex' : 'none';
+                });
+
+                // Show a section if any of its links are visible
+                navSections.forEach(section => {
+                    const links = Array.from(section.querySelectorAll('.nav-link'));
+                    const anyVisible = links.some(l => l.style.display !== 'none');
+                    section.style.display = anyVisible ? 'block' : 'none';
                 });
             });
         });
@@ -276,13 +296,15 @@
 
         document.getElementById('close-popup').addEventListener('click', closeDisclaimer);
 
-        // Event Selection
-        const eventDropdownToggle = document.getElementById('event-dropdown-toggle');
-        const eventDropdown = document.getElementById('event-dropdown');
-        const eventDropdownClose = document.getElementById('event-dropdown-close');
-        const eventSearch = document.getElementById('event-search');
-        const eventList = document.getElementById('event-list');
-        const currentEventName = document.getElementById('current-event-name');
+        // Event Selection (Tailwind dropdown with a11y)
+        (function(){
+            const eventDropdownToggle = document.getElementById('event-dropdown-toggle');
+            const eventDropdown = document.getElementById('event-dropdown');
+            const eventDropdownClose = document.getElementById('event-dropdown-close');
+            const eventSearch = document.getElementById('event-search');
+            const eventList = document.getElementById('event-list');
+            const currentEventName = document.getElementById('current-event-name');
+            if (!eventDropdownToggle || !eventDropdown || !eventList || !currentEventName) return;
 
         let events = [];
         let selectedEventId = null;
@@ -306,17 +328,28 @@
         // Render events in the dropdown
         function renderEvents(eventsToRender) {
             eventList.innerHTML = '';
-            eventsToRender.forEach(event => {
-                const eventElement = document.createElement('button');
-                eventElement.className = 'event-item';
-                eventElement.innerHTML = `
-                    <div class="event-item-content">
-                        <span class="event-name">${event.name}</span>
-                        <span class="event-date">${new Date(event.start_date).toLocaleDateString()}</span>
+            eventsToRender.forEach((event, index) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.setAttribute('role', 'option');
+                item.setAttribute('aria-selected', 'false');
+                item.className = 'w-full text-left px-3 py-2 rounded hover:bg-gray-50 focus:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#EE7700]';
+                item.innerHTML = `
+                    <div class="flex flex-col gap-1">
+                        <span class="font-medium text-gray-900">${event.name}</span>
+                        <span class="text-xs text-gray-500">${new Date(event.start_date).toLocaleDateString()}</span>
                     </div>
                 `;
-                eventElement.addEventListener('click', () => selectEvent(event));
-                eventList.appendChild(eventElement);
+                item.addEventListener('click', () => selectEvent(event));
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectEvent(event);
+                    }
+                });
+                // Manage roving tab index for keyboard nav
+                item.tabIndex = index === 0 ? 0 : -1;
+                eventList.appendChild(item);
             });
         }
 
@@ -359,25 +392,61 @@
             renderEvents(filteredEvents);
         });
 
-        // Toggle dropdown
-        eventDropdownToggle.addEventListener('click', () => {
-            eventDropdown.classList.toggle('show');
-            if (eventDropdown.classList.contains('show')) {
-                fetchEvents();
+        function openDropdown() {
+            eventDropdown.classList.remove('hidden');
+            eventDropdownToggle.setAttribute('aria-expanded', 'true');
+            fetchEvents();
+            // Focus search for quick type
+            setTimeout(() => { if (eventSearch) eventSearch.focus(); }, 0);
+        }
+
+        function closeDropdown() {
+            eventDropdown.classList.add('hidden');
+            eventDropdownToggle.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleDropdown() {
+            const isHidden = eventDropdown.classList.contains('hidden');
+            if (isHidden) {
+                openDropdown();
+            } else {
+                closeDropdown();
             }
-        });
+        }
+
+        eventDropdownToggle.addEventListener('click', toggleDropdown);
 
         // Close dropdown
-        eventDropdownClose.addEventListener('click', () => {
-            eventDropdown.classList.remove('show');
-        });
+        if (eventDropdownClose) eventDropdownClose.addEventListener('click', closeDropdown);
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!eventDropdown.contains(e.target) && !eventDropdownToggle.contains(e.target)) {
-                eventDropdown.classList.remove('show');
+                closeDropdown();
             }
         });
+
+        // Keyboard handling
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDropdown();
+                eventDropdownToggle.focus();
+            }
+            if (!eventDropdown.classList.contains('hidden')) {
+                const focusable = Array.from(eventList.querySelectorAll('[role="option"]'));
+                const currentIndex = focusable.findIndex(el => el === document.activeElement);
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = focusable[Math.min(currentIndex + 1, focusable.length - 1)] || focusable[0];
+                    next.focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = focusable[Math.max(currentIndex - 1, 0)] || focusable[focusable.length - 1];
+                    prev.focus();
+                }
+            }
+        });
+        })();
 
         // Load selected event from session on page load
         document.addEventListener('DOMContentLoaded', () => {
@@ -387,6 +456,5 @@
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </body>
 </html>
