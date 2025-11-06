@@ -116,6 +116,8 @@ def enter_emails():
         session['emails_to_process'] = emails
         session['processing_results'] = []
         session['processing_index'] = 0
+        session.modified = True  # Ensure Flask saves the session
+        logger.debug(f"Stored {len(emails)} emails in session for batch processing")
         
         # For small batches (< 50), process immediately
         if len(emails) < 50:
@@ -178,17 +180,23 @@ def process_batch():
 @add_attendee_to_session.route('/process_emails_batch', methods=['POST'])
 def process_emails_batch():
     """Process a batch of emails via AJAX to avoid timeout."""
-    
     api_key = get_api_key()
     event_id = session.get('event_id')
     session_id = session.get('selected_session_id')
     
+    logger.debug(f"Processing batch - event_id: {event_id}, session_id: {session_id}")
+    logger.debug(f"Session keys: {list(session.keys())}")
+    
     if not api_key or not event_id or not session_id:
+        logger.error(f"Missing parameters - api_key: {bool(api_key)}, event_id: {event_id}, session_id: {session_id}")
         return jsonify({'error': 'Missing required parameters'}), 400
     
     emails = session.get('emails_to_process', [])
+    logger.debug(f"Emails in session: {len(emails) if emails else 0}")
+    
     if not emails:
-        return jsonify({'error': 'No emails to process'}), 400
+        logger.error("No emails found in session")
+        return jsonify({'error': 'No emails to process. Session may have expired.'}), 400
     
     # Get batch parameters
     batch_size = request.json.get('batch_size', 10)
@@ -234,6 +242,8 @@ def process_emails_batch():
     next_index = start_index + len(batch_emails)
     is_complete = next_index >= len(emails)
     
+    logger.debug(f"Batch processed: {len(batch_emails)} emails, next_index: {next_index}, complete: {is_complete}")
+    
     if is_complete:
         log_action('add_attendee_to_session', event_id)
         session['results'] = session['processing_results']
@@ -241,6 +251,9 @@ def process_emails_batch():
         session.pop('emails_to_process', None)
         session.pop('processing_results', None)
         session.pop('processing_index', None)
+    
+    # Explicitly mark session as modified (Flask sessions need this)
+    session.modified = True
     
     return jsonify({
         'results': results,

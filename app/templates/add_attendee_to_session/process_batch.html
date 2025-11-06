@@ -1,14 +1,29 @@
 {% extends 'base.html' %}
 {% block title %}Add Attendees to Session - Processing{% endblock %}
 {% block content %}
+<style>
+/* Hide the base.html loading overlay completely on this page */
+#loading-overlay {
+  display: none !important;
+}
+</style>
 <script>
 // Hide the base.html loading overlay since we have our own progress indicator
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   const loadingOverlay = document.getElementById('loading-overlay');
   if (loadingOverlay) {
     loadingOverlay.style.display = 'none';
   }
-});
+  
+  // Prevent form submission handlers from showing the overlay
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+  });
+})();
 </script>
 <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
   <h2 class="text-2xl font-semibold text-gray-900 mb-4">Processing Emails</h2>
@@ -97,11 +112,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+      
+      progressText.textContent = `Processing batch ${Math.floor(currentIndex / batchSize) + 1}...`;
+      
       const response = await fetch('{{ url_for("add_attendee_to_session.process_emails_batch") }}', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          'X-CSRF-Token': csrfToken.content
         },
         body: JSON.stringify({
           batch_size: batchSize,
@@ -110,16 +132,30 @@ document.addEventListener('DOMContentLoaded', function() {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = errorText || errorMsg;
+        }
+        throw new Error(errorMsg);
       }
       
       const data = await response.json();
       
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       // Update counts
-      updateCounts(data.results);
+      if (data.results && data.results.length > 0) {
+        updateCounts(data.results);
+      }
       
       // Update progress
-      currentIndex = data.processed;
+      currentIndex = data.processed || (currentIndex + batchSize);
       updateProgress(currentIndex, totalEmails);
       
       // Process next batch
@@ -132,9 +168,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } catch (error) {
       console.error('Error processing batch:', error);
-      progressText.textContent = `Error: ${error.message}. Retrying...`;
+      progressText.textContent = `Error: ${error.message}. Retrying in 2 seconds...`;
+      progressText.style.color = '#dc2626';
       // Retry after a delay
-      setTimeout(processNextBatch, 1000);
+      setTimeout(processNextBatch, 2000);
     }
   }
   
