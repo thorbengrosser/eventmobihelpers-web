@@ -456,9 +456,12 @@
 
         // Load selected event from session on page load
         document.addEventListener('DOMContentLoaded', () => {
-            const eventName = document.getElementById('current-event-name').textContent;
-            if (eventName && eventName !== 'Select Event') {
-                currentEventName.textContent = eventName;
+            const currentEventNameEl = document.getElementById('current-event-name');
+            if (currentEventNameEl) {
+                const eventName = currentEventNameEl.textContent;
+                if (eventName && eventName !== 'Select Event') {
+                    currentEventNameEl.textContent = eventName;
+                }
             }
         });
     </script>
