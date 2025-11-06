@@ -195,9 +195,17 @@ console.log('Script starting...');
         // Small delay to avoid overwhelming the server
         setTimeout(processNextBatch, 100);
       } else {
-        console.log('Complete! Triggering final step...');
-        // All done
-        processNextBatch(); // This will trigger the completion logic
+        console.log('Complete! All batches processed.');
+        // All done - update UI and redirect
+        progressText.textContent = 'Processing complete!';
+        progressBar.style.width = '100%';
+        progressCount.textContent = `${totalEmails} / ${totalEmails}`;
+        
+        // Give a moment to show completion, then redirect
+        setTimeout(() => {
+          console.log('Redirecting to results page...');
+          window.location.href = '{{ url_for("add_attendee_to_session.result") }}';
+        }, 500);
       }
     } catch (error) {
       console.error('Error processing batch:', error);

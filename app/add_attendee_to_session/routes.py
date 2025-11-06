@@ -11,9 +11,10 @@ import time
 
 logger = logging.getLogger(__name__)
 
-# In-memory storage for email batches (to avoid cookie size limits)
+# In-memory storage for email batches and results (to avoid cookie size limits)
 # In production, consider using Redis or a database
 _email_batches = {}
+_results_cache = {}
 _batch_cleanup_time = 3600  # Clean up batches after 1 hour
 
 add_attendee_to_session = Blueprint('add_attendee_to_session', __name__)
@@ -173,10 +174,17 @@ def enter_emails():
             
             logger.info(f"Processed {len(emails)} emails: {success_count} success, {error_count} errors, {not_found_count} not found")
             log_action('add_attendee_to_session', event_id)
-            session['results'] = results
+            # Store results in server-side cache instead of session (to avoid cookie size limits)
+            results_id = str(uuid.uuid4())
+            _results_cache[results_id] = {
+                'results': results,
+                'created_at': time.time()
+            }
+            session['results_id'] = results_id
             # Clean up the batch since we processed it immediately
             del _email_batches[batch_id]
             session.pop('email_batch_id', None)
+            session.modified = True
             return redirect(url_for('add_attendee_to_session.result'))
         else:
             # For large batches, redirect to processing page
@@ -185,13 +193,20 @@ def enter_emails():
     return render_template('add_attendee_to_session/enter_emails.html', form=form, event_name=session.get('event_name'))
 
 def _cleanup_old_batches():
-    """Remove batches older than the cleanup time."""
+    """Remove batches and results older than the cleanup time."""
     current_time = time.time()
+    # Clean up old batches
     to_remove = [bid for bid, data in _email_batches.items() 
                  if current_time - data['created_at'] > _batch_cleanup_time]
     for bid in to_remove:
         del _email_batches[bid]
         logger.debug(f"Cleaned up old batch {bid}")
+    # Clean up old results
+    to_remove_results = [rid for rid, data in _results_cache.items() 
+                         if current_time - data['created_at'] > _batch_cleanup_time]
+    for rid in to_remove_results:
+        del _results_cache[rid]
+        logger.debug(f"Cleaned up old results {rid}")
 
 @add_attendee_to_session.route('/process_batch', methods=['GET'])
 def process_batch():
@@ -302,13 +317,19 @@ def process_emails_batch():
     
     if is_complete:
         log_action('add_attendee_to_session', event_id)
-        # Store results in session (small, just the results)
-        session['results'] = batch_data['results']
+        # Store results in server-side cache instead of session (to avoid cookie size limits)
+        results_id = str(uuid.uuid4())
+        _results_cache[results_id] = {
+            'results': batch_data['results'],
+            'created_at': time.time()
+        }
+        # Only store the results ID in session (small)
+        session['results_id'] = results_id
         # Clean up batch from server-side storage
         del _email_batches[batch_id]
         session.pop('email_batch_id', None)
         session.modified = True
-        logger.debug(f"Completed batch {batch_id}, cleaned up")
+        logger.debug(f"Completed batch {batch_id}, stored results in {results_id}")
     
     return jsonify({
         'results': results,
@@ -320,9 +341,23 @@ def process_emails_batch():
 
 @add_attendee_to_session.route('/result', methods=['GET'])
 def result():
-    results = session.get('results', [])
+    # Get results from server-side cache instead of session
+    results_id = session.get('results_id')
+    if not results_id:
+        flash('No results to display', 'warning')
+        return redirect(url_for('add_attendee_to_session.select_session'))
+    
+    results_data = _results_cache.get(results_id)
+    if not results_data:
+        flash('Results expired or not found', 'warning')
+        session.pop('results_id', None)
+        return redirect(url_for('add_attendee_to_session.select_session'))
+    
+    results = results_data['results']
     if not results:
         flash('No results to display', 'warning')
+        session.pop('results_id', None)
+        del _results_cache[results_id]
         return redirect(url_for('add_attendee_to_session.select_session'))
     
     # Calculate summary statistics
@@ -330,8 +365,10 @@ def result():
     success_count = sum(1 for r in results if r.get('success'))
     error_count = total - success_count
     
-    # Clear results from session after displaying
-    session.pop('results', None)
+    # Clean up results from cache and session after displaying
+    del _results_cache[results_id]
+    session.pop('results_id', None)
+    session.modified = True
     
     return render_template('add_attendee_to_session/result.html', 
                          results=results, 
