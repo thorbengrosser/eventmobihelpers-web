@@ -9,6 +9,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+add_attendee_to_session = Blueprint('add_attendee_to_session', __name__)
+
 def parse_emails(email_text):
     """Parse emails from text, splitting by newlines, commas, semicolons, or spaces."""
     emails = re.split(r'[,\s;]+', email_text)
