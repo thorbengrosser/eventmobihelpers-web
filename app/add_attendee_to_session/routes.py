@@ -180,6 +180,18 @@ def process_batch():
 @add_attendee_to_session.route('/process_emails_batch', methods=['POST'])
 def process_emails_batch():
     """Process a batch of emails via AJAX to avoid timeout."""
+    logger.info("process_emails_batch route called")
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request content type: {request.content_type}")
+    logger.info(f"Request data: {request.data}")
+    
+    try:
+        request_data = request.get_json() if request.is_json else {}
+        logger.info(f"Request JSON: {request_data}")
+    except Exception as e:
+        logger.error(f"Error parsing JSON: {e}")
+        request_data = {}
+    
     api_key = get_api_key()
     event_id = session.get('event_id')
     session_id = session.get('selected_session_id')
@@ -199,8 +211,9 @@ def process_emails_batch():
         return jsonify({'error': 'No emails to process. Session may have expired.'}), 400
     
     # Get batch parameters
-    batch_size = request.json.get('batch_size', 10)
-    start_index = request.json.get('start_index', 0)
+    batch_size = request_data.get('batch_size', 10)
+    start_index = request_data.get('start_index', 0)
+    logger.info(f"Processing batch - start_index: {start_index}, batch_size: {batch_size}")
     
     # Process this batch
     batch_emails = emails[start_index:start_index + batch_size]
