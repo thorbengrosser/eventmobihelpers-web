@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from .forms import SelectSessionForm, EnterEmailsForm
 from .services import fetch_person_by_email, add_session_to_personal_schedule
 from app.attendee_list.services import fetch_sessions
@@ -35,6 +35,38 @@ def select_session():
     
     # Only fetch sessions when we need to render the form (GET or POST with error)
     sessions = fetch_sessions()
+    
+    # Deduplicate sessions by ID
+    # Duplicates can occur because:
+    # 1. Sessions may appear in multiple tracks, causing the API to return them multiple times
+    # 2. Pagination might have edge cases where the same session appears on multiple pages
+    # 3. The EventMobi API may return sessions multiple times if they have multiple relationships
+    seen_ids = set()
+    unique_sessions = []
+    for s in sessions:
+        session_id = s.get('id')
+        if session_id and session_id not in seen_ids:
+            seen_ids.add(session_id)
+            unique_sessions.append(s)
+        elif not session_id:
+            # Include sessions without ID (shouldn't happen, but be safe)
+            unique_sessions.append(s)
+    
+    # Sort sessions by start time, then by title for consistent ordering
+    def get_sort_key(s):
+        start_dt = s.get('start_datetime') or s.get('start_time') or ''
+        title = s.get('title') or s.get('name') or ''
+        try:
+            if start_dt:
+                v = start_dt.replace('Z', '+00:00')
+                dt = datetime.fromisoformat(v)
+                return (dt, title)
+        except:
+            pass
+        return (datetime.min, title)
+    
+    unique_sessions.sort(key=get_sort_key)
+    
     def fmt_dt(value: str) -> str:
         if not value:
             return ''
@@ -45,7 +77,7 @@ def select_session():
         except Exception:
             return value
     choices = []
-    for s in sessions:
+    for s in unique_sessions:
         title = s.get('title') or s.get('name') or f"Session {s.get('id')}"
         start_dt = s.get('start_datetime') or s.get('start_time') or ''
         label = f"{title} — {fmt_dt(start_dt)}" if start_dt else title
@@ -75,47 +107,143 @@ def enter_emails():
         emails = parse_emails(email_text)
         logger.debug(f"Parsed {len(emails)} emails for session {session_id}")
         
-        results = []
-        success_count = 0
-        error_count = 0
-        not_found_count = 0
+        # Store emails in session for batch processing
+        session['emails_to_process'] = emails
+        session['processing_results'] = []
+        session['processing_index'] = 0
         
-        for email in emails:
-            logger.debug(f"Processing email: {email}")
-            person = fetch_person_by_email(api_key, event_id, email)
-            if person:
-                person_id = person.get('id')
-                logger.debug(f"Found person {person_id} for email {email}")
-                success, error_msg = add_session_to_personal_schedule(api_key, event_id, person_id, session_id)
-                if success:
-                    results.append({
-                        'email': email,
-                        'success': True,
-                        'error': None
-                    })
-                    success_count += 1
+        # For small batches (< 50), process immediately
+        if len(emails) < 50:
+            results = []
+            success_count = 0
+            error_count = 0
+            not_found_count = 0
+            
+            for email in emails:
+                logger.debug(f"Processing email: {email}")
+                person = fetch_person_by_email(api_key, event_id, email)
+                if person:
+                    person_id = person.get('id')
+                    logger.debug(f"Found person {person_id} for email {email}")
+                    success, error_msg = add_session_to_personal_schedule(api_key, event_id, person_id, session_id)
+                    if success:
+                        results.append({
+                            'email': email,
+                            'success': True,
+                            'error': None
+                        })
+                        success_count += 1
+                    else:
+                        results.append({
+                            'email': email,
+                            'success': False,
+                            'error': error_msg or 'Failed to add session'
+                        })
+                        error_count += 1
                 else:
+                    logger.warning(f"No person found with email: {email}")
                     results.append({
                         'email': email,
                         'success': False,
-                        'error': error_msg or 'Failed to add session'
+                        'error': 'Person not found'
                     })
-                    error_count += 1
+                    not_found_count += 1
+            
+            logger.info(f"Processed {len(emails)} emails: {success_count} success, {error_count} errors, {not_found_count} not found")
+            log_action('add_attendee_to_session', event_id)
+            session['results'] = results
+            return redirect(url_for('add_attendee_to_session.result'))
+        else:
+            # For large batches, redirect to processing page
+            return redirect(url_for('add_attendee_to_session.process_batch'))
+    
+    return render_template('add_attendee_to_session/enter_emails.html', form=form, event_name=session.get('event_name'))
+
+@add_attendee_to_session.route('/process_batch', methods=['GET'])
+def process_batch():
+    """Show the batch processing page that will process emails via AJAX."""
+    emails = session.get('emails_to_process', [])
+    if not emails:
+        flash('No emails to process', 'warning')
+        return redirect(url_for('add_attendee_to_session.select_session'))
+    return render_template('add_attendee_to_session/process_batch.html', 
+                         total_emails=len(emails),
+                         event_name=session.get('event_name'))
+
+@add_attendee_to_session.route('/process_emails_batch', methods=['POST'])
+def process_emails_batch():
+    """Process a batch of emails via AJAX to avoid timeout."""
+    
+    api_key = get_api_key()
+    event_id = session.get('event_id')
+    session_id = session.get('selected_session_id')
+    
+    if not api_key or not event_id or not session_id:
+        return jsonify({'error': 'Missing required parameters'}), 400
+    
+    emails = session.get('emails_to_process', [])
+    if not emails:
+        return jsonify({'error': 'No emails to process'}), 400
+    
+    # Get batch parameters
+    batch_size = request.json.get('batch_size', 10)
+    start_index = request.json.get('start_index', 0)
+    
+    # Process this batch
+    batch_emails = emails[start_index:start_index + batch_size]
+    results = []
+    
+    for email in batch_emails:
+        logger.debug(f"Processing email: {email}")
+        person = fetch_person_by_email(api_key, event_id, email)
+        if person:
+            person_id = person.get('id')
+            logger.debug(f"Found person {person_id} for email {email}")
+            success, error_msg = add_session_to_personal_schedule(api_key, event_id, person_id, session_id)
+            if success:
+                results.append({
+                    'email': email,
+                    'success': True,
+                    'error': None
+                })
             else:
-                logger.warning(f"No person found with email: {email}")
                 results.append({
                     'email': email,
                     'success': False,
-                    'error': 'Person not found'
+                    'error': error_msg or 'Failed to add session'
                 })
-                not_found_count += 1
-        
-        logger.info(f"Processed {len(emails)} emails: {success_count} success, {error_count} errors, {not_found_count} not found")
-        log_action('add_attendee_to_session', event_id)
-        session['results'] = results
-        return redirect(url_for('add_attendee_to_session.result'))
+        else:
+            logger.warning(f"No person found with email: {email}")
+            results.append({
+                'email': email,
+                'success': False,
+                'error': 'Person not found'
+            })
     
-    return render_template('add_attendee_to_session/enter_emails.html', form=form, event_name=session.get('event_name'))
+    # Update session with results
+    if 'processing_results' not in session:
+        session['processing_results'] = []
+    session['processing_results'].extend(results)
+    
+    # Check if we're done
+    next_index = start_index + len(batch_emails)
+    is_complete = next_index >= len(emails)
+    
+    if is_complete:
+        log_action('add_attendee_to_session', event_id)
+        session['results'] = session['processing_results']
+        # Clean up processing data
+        session.pop('emails_to_process', None)
+        session.pop('processing_results', None)
+        session.pop('processing_index', None)
+    
+    return jsonify({
+        'results': results,
+        'processed': next_index,
+        'total': len(emails),
+        'complete': is_complete,
+        'next_index': next_index if not is_complete else None
+    })
 
 @add_attendee_to_session.route('/result', methods=['GET'])
 def result():

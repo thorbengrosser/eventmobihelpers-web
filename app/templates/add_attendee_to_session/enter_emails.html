@@ -4,7 +4,7 @@
 <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
   <h2 class="text-2xl font-semibold text-gray-900 mb-1">Enter Attendee Email Addresses</h2>
   <p class="text-gray-500 mb-4">Paste emails (one per line or separated by commas, spaces, or semicolons).</p>
-  <form method="POST" class="space-y-4">
+  <form method="POST" id="email-form" class="space-y-4">
     {{ form.hidden_tag() }}
     <div>
       {{ form.emails.label(class="block text-sm font-medium text-gray-700 mb-1") }}
@@ -14,5 +14,72 @@
       {{ form.submit(class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[#EE7700] text-white hover:bg-[#D56800] focus:outline-none focus:ring-2 focus:ring-[#EE7700]") }}
     </div>
   </form>
+  
+  <!-- Progress Indicator -->
+  <div id="progress-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#EE7700] mb-4"></div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Processing Emails</h3>
+        <p id="progress-text" class="text-sm text-gray-600 mb-4">Preparing to process emails...</p>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div id="progress-bar" class="bg-[#EE7700] h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progress-count" class="text-xs text-gray-500 mt-2">0 / 0</p>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+(function() {
+  const form = document.getElementById('email-form');
+  const progressOverlay = document.getElementById('progress-overlay');
+  const progressText = document.getElementById('progress-text');
+  const progressBar = document.getElementById('progress-bar');
+  const progressCount = document.getElementById('progress-count');
+  
+  if (!form || !progressOverlay) return;
+  
+  form.addEventListener('submit', function(e) {
+    const emailText = form.querySelector('textarea[name="emails"]').value;
+    if (!emailText.trim()) return;
+    
+    // Parse emails to estimate count
+    const emails = emailText.split(/[,\s;]+/).filter(e => e.trim());
+    const totalEmails = emails.length;
+    
+    if (totalEmails === 0) return;
+    
+    // Show progress overlay
+    progressOverlay.classList.remove('hidden');
+    progressText.textContent = `Processing ${totalEmails} email${totalEmails !== 1 ? 's' : ''}...`;
+    progressCount.textContent = `0 / ${totalEmails}`;
+    progressBar.style.width = '0%';
+    
+    // Simulate progress (since we can't get real-time updates from server)
+    // This gives user feedback that something is happening
+    let current = 0;
+    const interval = setInterval(function() {
+      current += Math.max(1, Math.floor(totalEmails / 100)); // Increment by at least 1% or 1/100th of total
+      if (current > totalEmails) current = totalEmails;
+      
+      const percent = Math.min(95, (current / totalEmails) * 100); // Cap at 95% until done
+      progressBar.style.width = percent + '%';
+      progressCount.textContent = `${current} / ${totalEmails}`;
+      
+      if (current >= totalEmails) {
+        clearInterval(interval);
+        progressText.textContent = 'Finalizing...';
+        progressBar.style.width = '100%';
+      }
+    }, 200); // Update every 200ms
+    
+    // Clean up interval if page unloads (though form should submit)
+    window.addEventListener('beforeunload', function() {
+      clearInterval(interval);
+    });
+  });
+})();
+</script>
 {% endblock %} 
