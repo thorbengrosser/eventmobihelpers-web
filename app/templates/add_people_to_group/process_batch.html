@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block title %}Add People to Group - Processing{% endblock %}
+{% block content %}
+<style>
+/* Hide the base.html loading overlay completely on this page */
+#loading-overlay {
+  display: none !important;
+}
+</style>
+<script>
+// Hide the base.html loading overlay since we have our own progress indicator
+(function() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.style.display = 'none';
+  }
+  
+  // Prevent form submission handlers from showing the overlay
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+  });
+})();
+</script>
+<div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-4">Processing Emails</h2>
+  
+  <div class="text-center">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#EE7700] mb-4"></div>
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Adding People to Group</h3>
+    <p id="progress-text" class="text-sm text-gray-600 mb-4">Starting processing...</p>
+    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
+      <div id="progress-bar" class="bg-[#EE7700] h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+    </div>
+    <p id="progress-count" class="text-xs text-gray-500">0 / {{ total_emails }}</p>
+    
+    <div id="status-summary" class="mt-6 text-left hidden">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <div class="text-2xl font-bold text-green-600" id="success-count">0</div>
+          <div class="text-sm text-gray-600">Success</div>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-red-600" id="error-count">0</div>
+          <div class="text-sm text-gray-600">Errors</div>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-gray-600" id="not-found-count">0</div>
+          <div class="text-sm text-gray-600">Not Found</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log('Script starting...');
+(function() {
+  console.log('Initializing batch processor...');
+  const totalEmails = {{ total_emails }};
+  console.log('Total emails:', totalEmails);
+  
+  if (!totalEmails || totalEmails === 0) {
+    console.error('No emails to process!');
+    return;
+  }
+  
+  const batchSize = 10; // Process 10 emails per request
+  let currentIndex = 0;
+  let successCount = 0;
+  let errorCount = 0;
+  let notFoundCount = 0;
+  
+  const progressText = document.getElementById('progress-text');
+  const progressBar = document.getElementById('progress-bar');
+  const progressCount = document.getElementById('progress-count');
+  const statusSummary = document.getElementById('status-summary');
+  const successCountEl = document.getElementById('success-count');
+  const errorCountEl = document.getElementById('error-count');
+  const notFoundCountEl = document.getElementById('not-found-count');
+  
+  console.log('Elements found:', {
+    progressText: !!progressText,
+    progressBar: !!progressBar,
+    progressCount: !!progressCount
+  });
+  
+  function updateProgress(processed, total) {
+    const percent = (processed / total) * 100;
+    progressBar.style.width = percent + '%';
+    progressCount.textContent = `${processed} / ${total}`;
+    progressText.textContent = `Processing... ${processed} of ${total} emails`;
+  }
+  
+  function updateCounts(batchResults) {
+    batchResults.forEach(result => {
+      if (result.success) {
+        successCount++;
+      } else if (result.error === 'Person not found') {
+        notFoundCount++;
+      } else {
+        errorCount++;
+      }
+    });
+    
+    successCountEl.textContent = successCount;
+    errorCountEl.textContent = errorCount;
+    notFoundCountEl.textContent = notFoundCount;
+    statusSummary.classList.remove('hidden');
+  }
+  
+  async function processNextBatch() {
+    console.log('processNextBatch called, currentIndex:', currentIndex, 'totalEmails:', totalEmails);
+    
+    if (currentIndex >= totalEmails) {
+      // All done!
+      console.log('Processing complete!');
+      progressText.textContent = 'Processing complete!';
+      progressBar.style.width = '100%';
+      progressCount.textContent = `${totalEmails} / ${totalEmails}`;
+      
+      // Redirect to results page after a short delay
+      setTimeout(() => {
+        window.location.href = '{{ url_for("add_people_to_group.result") }}';
+      }, 1500);
+      return;
+    }
+    
+    try {
+      console.log('Preparing to fetch batch...');
+      const csrfToken = document.querySelector('meta[name="csrf-token"]');
+      console.log('CSRF token found:', !!csrfToken);
+      
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+      
+      progressText.textContent = `Processing batch ${Math.floor(currentIndex / batchSize) + 1}...`;
+      
+      const url = '{{ url_for("add_people_to_group.process_emails_batch") }}';
+      console.log('Fetching URL:', url);
+      console.log('Request data:', { batch_size: batchSize, start_index: currentIndex });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken.content
+        },
+        body: JSON.stringify({
+          batch_size: batchSize,
+          start_index: currentIndex
+        })
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMsg = errorData.error || errorMsg;
+        } catch (e) {
+          errorMsg = errorText || errorMsg;
+        }
+        throw new Error(errorMsg);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.error) {
+        console.error('Error in response:', data.error);
+        throw new Error(data.error);
+      }
+      
+      // Update counts
+      if (data.results && data.results.length > 0) {
+        console.log('Updating counts with', data.results.length, 'results');
+        updateCounts(data.results);
+      }
+      
+      // Update progress
+      currentIndex = data.processed || (currentIndex + batchSize);
+      console.log('Updated currentIndex to:', currentIndex);
+      updateProgress(currentIndex, totalEmails);
+      
+      // Process next batch
+      if (!data.complete) {
+        console.log('Not complete, processing next batch...');
+        // Small delay to avoid overwhelming the server
+        setTimeout(processNextBatch, 100);
+      } else {
+        console.log('Complete! All batches processed.');
+        // All done - update UI and redirect
+        progressText.textContent = 'Processing complete!';
+        progressBar.style.width = '100%';
+        progressCount.textContent = `${totalEmails} / ${totalEmails}`;
+        
+        // Give a moment to show completion, then redirect
+        setTimeout(() => {
+          console.log('Redirecting to results page...');
+          window.location.href = '{{ url_for("add_people_to_group.result") }}';
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error processing batch:', error);
+      console.error('Error stack:', error.stack);
+      progressText.textContent = `Error: ${error.message}. Retrying in 2 seconds...`;
+      progressText.style.color = '#dc2626';
+      // Retry after a delay
+      setTimeout(processNextBatch, 2000);
+    }
+  }
+  
+  // Start processing
+  console.log('Starting batch processing...');
+  processNextBatch();
+  console.log('processNextBatch called');
+})();
+console.log('Script loaded');
+</script>
+{% endblock %}
+
