@@ -6,8 +6,15 @@ from app.utils import get_api_key, log_action
 from datetime import datetime
 import re
 import logging
+import uuid
+import time
 
 logger = logging.getLogger(__name__)
+
+# In-memory storage for email batches (to avoid cookie size limits)
+# In production, consider using Redis or a database
+_email_batches = {}
+_batch_cleanup_time = 3600  # Clean up batches after 1 hour
 
 add_attendee_to_session = Blueprint('add_attendee_to_session', __name__)
 
@@ -112,12 +119,20 @@ def enter_emails():
         emails = parse_emails(email_text)
         logger.debug(f"Parsed {len(emails)} emails for session {session_id}")
         
-        # Store emails in session for batch processing
-        session['emails_to_process'] = emails
-        session['processing_results'] = []
-        session['processing_index'] = 0
-        session.modified = True  # Ensure Flask saves the session
-        logger.debug(f"Stored {len(emails)} emails in session for batch processing")
+        # Store emails in server-side cache instead of session (to avoid cookie size limits)
+        batch_id = str(uuid.uuid4())
+        _email_batches[batch_id] = {
+            'emails': emails,
+            'results': [],
+            'created_at': time.time()
+        }
+        # Only store the batch ID in session (small)
+        session['email_batch_id'] = batch_id
+        session.modified = True
+        logger.debug(f"Stored {len(emails)} emails in batch {batch_id} (not in session)")
+        
+        # Clean up old batches
+        _cleanup_old_batches()
         
         # For small batches (< 50), process immediately
         if len(emails) < 50:
@@ -159,6 +174,9 @@ def enter_emails():
             logger.info(f"Processed {len(emails)} emails: {success_count} success, {error_count} errors, {not_found_count} not found")
             log_action('add_attendee_to_session', event_id)
             session['results'] = results
+            # Clean up the batch since we processed it immediately
+            del _email_batches[batch_id]
+            session.pop('email_batch_id', None)
             return redirect(url_for('add_attendee_to_session.result'))
         else:
             # For large batches, redirect to processing page
@@ -166,13 +184,29 @@ def enter_emails():
     
     return render_template('add_attendee_to_session/enter_emails.html', form=form, event_name=session.get('event_name'))
 
+def _cleanup_old_batches():
+    """Remove batches older than the cleanup time."""
+    current_time = time.time()
+    to_remove = [bid for bid, data in _email_batches.items() 
+                 if current_time - data['created_at'] > _batch_cleanup_time]
+    for bid in to_remove:
+        del _email_batches[bid]
+        logger.debug(f"Cleaned up old batch {bid}")
+
 @add_attendee_to_session.route('/process_batch', methods=['GET'])
 def process_batch():
     """Show the batch processing page that will process emails via AJAX."""
-    emails = session.get('emails_to_process', [])
-    if not emails:
-        flash('No emails to process', 'warning')
+    batch_id = session.get('email_batch_id')
+    if not batch_id:
+        flash('No batch to process', 'warning')
         return redirect(url_for('add_attendee_to_session.select_session'))
+    
+    batch_data = _email_batches.get(batch_id)
+    if not batch_data:
+        flash('Batch expired or not found', 'warning')
+        return redirect(url_for('add_attendee_to_session.select_session'))
+    
+    emails = batch_data['emails']
     return render_template('add_attendee_to_session/process_batch.html', 
                          total_emails=len(emails),
                          event_name=session.get('event_name'))
@@ -203,12 +237,23 @@ def process_emails_batch():
         logger.error(f"Missing parameters - api_key: {bool(api_key)}, event_id: {event_id}, session_id: {session_id}")
         return jsonify({'error': 'Missing required parameters'}), 400
     
-    emails = session.get('emails_to_process', [])
-    logger.debug(f"Emails in session: {len(emails) if emails else 0}")
+    # Get batch from server-side storage instead of session
+    batch_id = session.get('email_batch_id')
+    if not batch_id:
+        logger.error("No batch_id in session")
+        return jsonify({'error': 'No batch ID found. Session may have expired.'}), 400
+    
+    batch_data = _email_batches.get(batch_id)
+    if not batch_data:
+        logger.error(f"Batch {batch_id} not found in storage")
+        return jsonify({'error': 'Batch not found. It may have expired.'}), 400
+    
+    emails = batch_data['emails']
+    logger.debug(f"Emails in batch: {len(emails) if emails else 0}")
     
     if not emails:
-        logger.error("No emails found in session")
-        return jsonify({'error': 'No emails to process. Session may have expired.'}), 400
+        logger.error("No emails found in batch")
+        return jsonify({'error': 'No emails to process.'}), 400
     
     # Get batch parameters
     batch_size = request_data.get('batch_size', 10)
@@ -246,10 +291,8 @@ def process_emails_batch():
                 'error': 'Person not found'
             })
     
-    # Update session with results
-    if 'processing_results' not in session:
-        session['processing_results'] = []
-    session['processing_results'].extend(results)
+    # Update batch results in server-side storage
+    batch_data['results'].extend(results)
     
     # Check if we're done
     next_index = start_index + len(batch_emails)
@@ -259,14 +302,13 @@ def process_emails_batch():
     
     if is_complete:
         log_action('add_attendee_to_session', event_id)
-        session['results'] = session['processing_results']
-        # Clean up processing data
-        session.pop('emails_to_process', None)
-        session.pop('processing_results', None)
-        session.pop('processing_index', None)
-    
-    # Explicitly mark session as modified (Flask sessions need this)
-    session.modified = True
+        # Store results in session (small, just the results)
+        session['results'] = batch_data['results']
+        # Clean up batch from server-side storage
+        del _email_batches[batch_id]
+        session.pop('email_batch_id', None)
+        session.modified = True
+        logger.debug(f"Completed batch {batch_id}, cleaned up")
     
     return jsonify({
         'results': results,
