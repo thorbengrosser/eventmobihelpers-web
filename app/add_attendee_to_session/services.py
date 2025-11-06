@@ -22,15 +22,14 @@ def fetch_person_by_email(api_key, event_id, email):
 
 def add_session_to_personal_schedule(api_key, event_id, person_id, session_id):
     """Add a session to a person's personal schedule."""
-    url = f"https://uapi.eventmobi.com/events/{event_id}/personal_schedules"
+    url = f"https://uapi.eventmobi.com/events/{event_id}/people/{person_id}/schedule"
     headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
+        "Accept": "application/vnd.eventmobi+json; version=4",
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     data = {
-        "person_id": person_id,
-        "session_id": session_id
+        "id": session_id
     }
     logger.debug(f"Adding session to personal schedule at {url} with data: {data}")
     response = requests.post(url, json=data, headers=headers)
@@ -41,7 +40,16 @@ def add_session_to_personal_schedule(api_key, event_id, person_id, session_id):
     else:
         try:
             error_data = response.json()
-            error_msg = error_data.get('error', {}).get('message', response.text) if isinstance(error_data, dict) else response.text
+            # Handle different error response formats
+            if isinstance(error_data, dict):
+                if 'errors' in error_data and error_data['errors']:
+                    error_msg = error_data['errors'][0].get('message', str(error_data['errors'][0]))
+                elif 'error' in error_data:
+                    error_msg = error_data['error'].get('message', str(error_data['error']))
+                else:
+                    error_msg = str(error_data)
+            else:
+                error_msg = str(error_data)
         except:
             error_msg = response.text
         return False, error_msg 

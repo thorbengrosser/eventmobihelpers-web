@@ -20,7 +20,20 @@ def parse_emails(email_text):
 def select_session():
     if not session.get('event_id'):
         return redirect(url_for('main.select_event'))
+    
     form = SelectSessionForm()
+    
+    # Handle POST request first - if valid, redirect immediately without fetching sessions
+    if request.method == 'POST':
+        selected = request.form.get('session')
+        if not selected:
+            flash('Please select a session', 'error')
+            # Fall through to render form with error (will fetch sessions below)
+        else:
+            session['selected_session_id'] = selected
+            return redirect(url_for('add_attendee_to_session.enter_emails'))
+    
+    # Only fetch sessions when we need to render the form (GET or POST with error)
     sessions = fetch_sessions()
     def fmt_dt(value: str) -> str:
         if not value:
@@ -38,13 +51,7 @@ def select_session():
         label = f"{title} — {fmt_dt(start_dt)}" if start_dt else title
         choices.append((str(s['id']), label))
     form.session.choices = choices
-    if request.method == 'POST':
-        selected = request.form.get('session')
-        if not selected:
-            flash('Please select a session', 'error')
-        else:
-            session['selected_session_id'] = selected
-            return redirect(url_for('add_attendee_to_session.enter_emails'))
+    
     return render_template('add_attendee_to_session/select_session.html', form=form, event_name=session.get('event_name'))
 
 @add_attendee_to_session.route('/enter_emails', methods=['POST', 'GET'])
