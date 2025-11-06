@@ -77,11 +77,16 @@ def select_session():
         except Exception:
             return value
     choices = []
+    # Use a set to track choice IDs to prevent duplicates in the choices list itself
+    seen_choice_ids = set()
     for s in unique_sessions:
-        title = s.get('title') or s.get('name') or f"Session {s.get('id')}"
-        start_dt = s.get('start_datetime') or s.get('start_time') or ''
-        label = f"{title} — {fmt_dt(start_dt)}" if start_dt else title
-        choices.append((str(s['id']), label))
+        session_id = str(s.get('id', ''))
+        if session_id and session_id not in seen_choice_ids:
+            seen_choice_ids.add(session_id)
+            title = s.get('title') or s.get('name') or f"Session {session_id}"
+            start_dt = s.get('start_datetime') or s.get('start_time') or ''
+            label = f"{title} — {fmt_dt(start_dt)}" if start_dt else title
+            choices.append((session_id, label))
     form.session.choices = choices
     
     return render_template('add_attendee_to_session/select_session.html', form=form, event_name=session.get('event_name'))

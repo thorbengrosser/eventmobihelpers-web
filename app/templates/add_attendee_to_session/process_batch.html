@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}Add Attendees to Session - Processing{% endblock %}
 {% block content %}
+<script>
+// Hide the base.html loading overlay since we have our own progress indicator
+document.addEventListener('DOMContentLoaded', function() {
+  const loadingOverlay = document.getElementById('loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.style.display = 'none';
+  }
+});
+</script>
 <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
   <h2 class="text-2xl font-semibold text-gray-900 mb-4">Processing Emails</h2>
   
