@@ -28,25 +28,40 @@ class EventMobiClient:
         except requests.exceptions.RequestException as e:
             raise Exception(f"API request failed: {str(e)}")
     
-    def _get_all_paginated(self, endpoint, params=None, version_accept=None, page_size=200, max_pages=50):
+    def _get_all_paginated(self, endpoint, params=None, version_accept=None, limit=500, max_pages=50):
         results = []
-        page = 1
+        page = 0
         headers = dict(self.headers)
         if version_accept:
             headers['Accept'] = version_accept
-        while page <= max_pages:
+
+        while page < max_pages:
             merged_params = dict(params or {})
-            merged_params.update({'page[size]': page_size, 'page[number]': page})
+            merged_params.update({'limit': limit, 'page': page})
             url = f"{self.BASE_URL}/{endpoint}"
             try:
                 resp = requests.get(url, headers=headers, params=merged_params, timeout=10)
                 resp.raise_for_status()
-                data = resp.json().get('data') or resp.json()
-                if not isinstance(data, list):
+                body = resp.json()
+                data = body.get('data') if isinstance(body, dict) else body
+                if not isinstance(data, list) or not data:
                     break
                 results.extend(data)
-                if len(data) < page_size:
+
+                meta = body.get('meta') if isinstance(body, dict) else None
+                pagination = meta.get('pagination') if isinstance(meta, dict) else None
+
+                page_items_count = len(data)
+                total_items_count = None
+                if pagination:
+                    page_items_count = pagination.get('page_items_count', page_items_count)
+                    total_items_count = pagination.get('total_items_count')
+
+                if page_items_count < limit:
                     break
+                if total_items_count is not None and len(results) >= total_items_count:
+                    break
+
                 page += 1
             except Exception:
                 break
@@ -71,14 +86,17 @@ class EventMobiClient:
     def get_sessions(self, event_id):
         """Get all sessions for a specific event."""
         try:
+            params = {'sort': 'start_datetime'}
             data = self._get_all_paginated(
                 f'events/{event_id}/sessions',
-                version_accept='application/vnd.eventmobi+json; version=4'
+                params=params,
+                version_accept='application/vnd.eventmobi+json; version=4',
+                limit=1000
             )
-            if not data:
-                response = self._make_request('GET', f'events/{event_id}/sessions')
-                return response.get('data', [])
-            return data
+            if data:
+                return data
+            response = self._make_request('GET', f'events/{event_id}/sessions', params=params)
+            return response.get('data', []) if isinstance(response, dict) else response
         except Exception as e:
             raise Exception(f"Failed to fetch sessions for event {event_id}: {str(e)}")
     
@@ -132,29 +150,25 @@ class EventMobiClient:
         try:
             headers = dict(self.headers)
             headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
-            params = {'page[size]': 200}
+            params = {'limit': 500, 'page': 0}
             url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}/people"
 
             results = []
             while True:
                 resp = requests.get(url, headers=headers, params=params, timeout=10)
                 resp.raise_for_status()
-                data = resp.json()
-
-                # data can either be {'data': [...], 'meta': {pagination...}} or a list
-                page_items = data.get('data') if isinstance(data, dict) else data
-                if not isinstance(page_items, list):
+                body = resp.json()
+                page_items = body.get('data') if isinstance(body, dict) else body
+                if not isinstance(page_items, list) or not page_items:
                     break
-
                 results.extend(page_items)
 
-                # Check pagination metadata for next page
-                meta = data.get('meta') if isinstance(data, dict) else {}
+                meta = body.get('meta') if isinstance(body, dict) else {}
                 pagination = meta.get('pagination') if isinstance(meta, dict) else {}
                 next_page = pagination.get('next_page_number')
-                if not next_page:
+                if next_page is None:
                     break
-                params['page[number]'] = next_page
+                params['page'] = next_page
 
             if results:
                 return results
@@ -166,7 +180,7 @@ class EventMobiClient:
             f'events/{event_id}/people',
             params={'scheduled_session_id': session_id, 'sort': 'last_name'},
             version_accept='application/vnd.eventmobi+json; version=4',
-            page_size=200
+            limit=500
         )
         if isinstance(people, list) and people:
             return people

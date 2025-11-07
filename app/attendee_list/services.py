@@ -8,7 +8,19 @@ def fetch_sessions() -> List[Dict]:
     event_id = session.get('event_id')
     if not client or not event_id:
         return []
-    return client.get_sessions(event_id)
+    sessions = client.get_sessions(event_id) or []
+
+    # Deduplicate sessions by id because the API may return the same session multiple times
+    unique_sessions = []
+    seen_ids = set()
+    for s in sessions:
+        sid = str(s.get('id') or '')
+        if sid and sid in seen_ids:
+            continue
+        if sid:
+            seen_ids.add(sid)
+        unique_sessions.append(s)
+    return unique_sessions
 
 
 def fetch_session_detail(session_id: str) -> Dict:
