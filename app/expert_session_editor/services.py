@@ -1,5 +1,7 @@
+from datetime import datetime, timezone
+from decimal import Decimal
+
 import requests
-from datetime import datetime
 
 def fetch_events(api_key):
     url = "https://uapi.eventmobi.com/events"
@@ -24,7 +26,10 @@ def fetch_sessions(api_key, event_id):
     return response.json().get('data', [])
 
 def fetch_session_details(api_key, event_id, session_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/{session_id}?include=location,chat,external_links,tracks,roles,settings,documents"
+    url = (
+        f"https://uapi.eventmobi.com/events/{event_id}/sessions/{session_id}"
+        "?include=location,chat,external_links,tracks,roles,settings,documents,content_experience,accessibility"
+    )
     headers = {
         "Accept": "application/vnd.eventmobi+json; version=3",
         "Authorization": f"Bearer {api_key}"
@@ -34,6 +39,20 @@ def fetch_session_details(api_key, event_id, session_id):
         return {}
     return response.json().get('data', {})
 
+def _serialize_value(value):
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.isoformat()
+        return value.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, list):
+        return [_serialize_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _serialize_value(val) for key, val in value.items()}
+    return value
+
+
 def update_session(api_key, event_id, session_id, data):
     url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/{session_id}"
     headers = {
@@ -41,27 +60,8 @@ def update_session(api_key, event_id, session_id, data):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    
-    # Create a copy of the data to modify
-    update_data = data.copy()
-    
-    # Convert datetime objects to ISO format strings
-    if 'start_datetime' in update_data and isinstance(update_data['start_datetime'], datetime):
-        update_data['start_datetime'] = update_data['start_datetime'].isoformat()
-    if 'end_datetime' in update_data and isinstance(update_data['end_datetime'], datetime):
-        update_data['end_datetime'] = update_data['end_datetime'].isoformat()
-    
-    # Handle chat settings
-    if 'chat_enabled' in update_data:
-        chat_enabled = update_data.pop('chat_enabled') == 'true'
-        update_data['chat'] = {'enabled': chat_enabled}
-    
-    # Handle AAQ settings
-    if 'aaq_enabled' in update_data:
-        aaq_enabled = update_data.pop('aaq_enabled') == 'true'
-        if 'settings' not in update_data:
-            update_data['settings'] = {}
-        update_data['settings']['aaq_enabled'] = aaq_enabled
-    
+
+    update_data = _serialize_value(data)
+
     response = requests.patch(url, headers=headers, json=update_data)
     return response.json()
