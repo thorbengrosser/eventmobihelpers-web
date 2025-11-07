@@ -129,14 +129,37 @@ class EventMobiClient:
 
     def get_session_attendees(self, event_id, session_id):
         """Fetch attendees for a session using dedicated endpoints first, then fall back to filters."""
-        # First, try the dedicated sessions/{id}/people endpoint (v4)
-        people = self._get_all_paginated(
-            f'events/{event_id}/sessions/{session_id}/people',
-            version_accept='application/vnd.eventmobi+json; version=4',
-            page_size=200
-        )
-        if isinstance(people, list) and people:
-            return people
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            params = {'page[size]': 200}
+            url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}/people"
+
+            results = []
+            while True:
+                resp = requests.get(url, headers=headers, params=params, timeout=10)
+                resp.raise_for_status()
+                data = resp.json()
+
+                # data can either be {'data': [...], 'meta': {pagination...}} or a list
+                page_items = data.get('data') if isinstance(data, dict) else data
+                if not isinstance(page_items, list):
+                    break
+
+                results.extend(page_items)
+
+                # Check pagination metadata for next page
+                meta = data.get('meta') if isinstance(data, dict) else {}
+                pagination = meta.get('pagination') if isinstance(meta, dict) else {}
+                next_page = pagination.get('next_page_number')
+                if not next_page:
+                    break
+                params['page[number]'] = next_page
+
+            if results:
+                return results
+        except requests.RequestException as e:
+            current_app.logger.warning(f"sessions/{session_id}/people endpoint failed: {e}")
 
         # Fallback: use people endpoint with scheduled_session_id filter (v4)
         people = self._get_all_paginated(
