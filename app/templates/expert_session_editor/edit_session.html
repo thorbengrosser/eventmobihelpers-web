@@ -33,52 +33,54 @@
         <div id="ui-editor" class="space-y-10 {% if form.mode.data == 'raw' %}hidden{% endif %}">
             <section class="space-y-5">
                 <h3 class="text-lg font-semibold text-gray-900">Session Details</h3>
+                {% set core_form = form.core.form if form.core.form is not none else form.core %}
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        {{ form.core.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.core.name(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                        {{ render_errors(form.core.name.errors) }}
+                        {{ core_form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ core_form.name(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ render_errors(core_form.name.errors) }}
                     </div>
                     <div>
-                        {{ form.core.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.core.external_id(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ core_form.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ core_form.external_id(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                         <p class="text-xs text-gray-500 mt-1">Leave blank to clear the external ID.</p>
-                        {{ render_errors(form.core.external_id.errors) }}
+                        {{ render_errors(core_form.external_id.errors) }}
                     </div>
                 </div>
                 <div>
-                    {{ form.core.description.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                    {{ form.core.description(class="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="4") }}
-                    {{ render_errors(form.core.description.errors) }}
+                    {{ core_form.description.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                    {{ core_form.description(class="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="4") }}
+                    {{ render_errors(core_form.description.errors) }}
                 </div>
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        {{ form.core.start_datetime.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.core.start_datetime(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ core_form.start_datetime.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ core_form.start_datetime(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                         <p class="text-xs text-gray-500 mt-1">UTC time. Leave blank to keep current value.</p>
-                        {{ render_errors(form.core.start_datetime.errors) }}
+                        {{ render_errors(core_form.start_datetime.errors) }}
                     </div>
                     <div>
-                        {{ form.core.end_datetime.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.core.end_datetime(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                        {{ render_errors(form.core.end_datetime.errors) }}
+                        {{ core_form.end_datetime.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ core_form.end_datetime(class="w-full h-11 px-4 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ render_errors(core_form.end_datetime.errors) }}
                     </div>
                 </div>
             </section>
 
             <section class="space-y-5">
                 <h3 class="text-lg font-semibold text-gray-900">Accessibility</h3>
+                {% set acc_form = form.accessibility.form if form.accessibility.form is not none else form.accessibility %}
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        {{ form.accessibility.entity_type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.accessibility.entity_type(class="w-full h-11 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ acc_form.entity_type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ acc_form.entity_type(class="w-full h-11 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Entity IDs</label>
                     <p class="text-xs text-gray-500 mb-2">Provide one entity ID per row. Leave blank rows unused.</p>
                     <div class="space-y-3">
-                        {% for entry in form.accessibility.entity_ids %}
+                        {% for entry in acc_form.entity_ids %}
                             <div class="flex gap-3">
                                 {{ entry.value(class="flex-1 h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="entity-id") }}
                                 {{ render_errors(entry.value.errors) }}
@@ -125,17 +127,19 @@
 
             <section class="space-y-5">
                 <h3 class="text-lg font-semibold text-gray-900">Engagement &amp; Chat</h3>
+                {% set chat_form = form.chat.form if form.chat.form is not none else form.chat %}
+                {% set settings_form = form.settings.form if form.settings.form is not none else form.settings %}
                 <div class="grid md:grid-cols-2 gap-4">
                     <label class="inline-flex items-center gap-3 text-sm text-gray-700">
-                        {{ form.chat.enabled(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                        {{ chat_form.enabled(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                         Enable Chat
                     </label>
                     <label class="inline-flex items-center gap-3 text-sm text-gray-700">
-                        {{ form.settings.aaq_enabled(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                        {{ settings_form.aaq_enabled(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                         Enable Ask A Question
                     </label>
                     <label class="inline-flex items-center gap-3 text-sm text-gray-700">
-                        {{ form.settings.prevent_schedule_overlap(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                        {{ settings_form.prevent_schedule_overlap(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                         Prevent Schedule Overlap
                     </label>
                 </div>
@@ -143,7 +147,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Engagement Order</label>
                     <p class="text-xs text-gray-500 mb-2">Accepted values: ask_a_question, live_poll, chat.</p>
                     <div class="space-y-3">
-                        {% for entry in form.settings.engagement_order %}
+                        {% for entry in settings_form.engagement_order %}
                             <div>
                                 {{ entry.value(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="engagement key") }}
                                 {{ render_errors(entry.value.errors) }}
@@ -161,28 +165,28 @@
                         <div class="border border-gray-200 rounded-md p-4 space-y-3">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    {{ entry.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ entry.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                                    {{ render_errors(entry.id.errors) }}
+                                    {{ entry.form.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ entry.form.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                    {{ render_errors(entry.form.id.errors) }}
                                 </div>
                                 <div>
-                                    {{ entry.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ entry.name(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                                    {{ render_errors(entry.name.errors) }}
+                                    {{ entry.form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ entry.form.name(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                    {{ render_errors(entry.form.name.errors) }}
                                 </div>
                                 <div class="md:col-span-2">
-                                    {{ entry.link.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ entry.link(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="https://") }}
-                                    {{ render_errors(entry.link.errors) }}
+                                    {{ entry.form.link.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ entry.form.link(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="https://") }}
+                                    {{ render_errors(entry.form.link.errors) }}
                                 </div>
                                 <div>
-                                    {{ entry.order.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ entry.order(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="0") }}
-                                    {{ render_errors(entry.order.errors) }}
+                                    {{ entry.form.order.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ entry.form.order(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="0") }}
+                                    {{ render_errors(entry.form.order.errors) }}
                                 </div>
                             </div>
                             <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                {{ entry.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                {{ entry.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                 Remove this link
                             </label>
                         </div>
@@ -198,38 +202,38 @@
                         <div class="border border-gray-200 rounded-md p-4 space-y-4">
                             <div class="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    {{ role.identifier_type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ role.identifier_type(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                    {{ role.form.identifier_type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ role.form.identifier_type(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                                 </div>
                                 <div>
-                                    {{ role.identifier_value.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                    {{ role.identifier_value(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                                    {{ render_errors(role.identifier_value.errors) }}
+                                    {{ role.form.identifier_value.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                    {{ role.form.identifier_value(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                    {{ render_errors(role.form.identifier_value.errors) }}
                                 </div>
                             </div>
                             <div class="space-y-3">
                                 <p class="text-xs text-gray-500">People assigned to this role</p>
-                                {% for person in role.people %}
+                                {% for person in role.form.people %}
                                     <div class="grid md:grid-cols-3 gap-3 items-end">
                                         <div>
-                                            {{ person.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                            {{ person.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                                            {{ render_errors(person.id.errors) }}
+                                            {{ person.form.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                            {{ person.form.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                            {{ render_errors(person.form.id.errors) }}
                                         </div>
                                         <div>
-                                            {{ person.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                            {{ person.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                                            {{ render_errors(person.external_id.errors) }}
+                                            {{ person.form.external_id.label(class="block text_sm font-medium text-gray-700 mb-1") }}
+                                            {{ person.form.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                            {{ render_errors(person.form.external_id.errors) }}
                                         </div>
                                         <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                            {{ person.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                            {{ person.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                             Remove person
                                         </label>
                                     </div>
                                 {% endfor %}
                             </div>
                             <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                {{ role.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                {{ role.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                 Remove this role
                             </label>
                         </div>
@@ -244,9 +248,9 @@
                         <h4 class="text-sm font-semibold text-gray-800">Tracks</h4>
                         {% for track in form.tracks %}
                             <div class="flex items-center gap-3">
-                                {{ track.id(class="flex-1 h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="track-id") }}
+                                {{ track.form.id(class="flex-1 h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="track-id") }}
                                 <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                    {{ track.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                    {{ track.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                     Remove
                                 </label>
                             </div>
@@ -256,9 +260,9 @@
                         <h4 class="text-sm font-semibold text-gray-800">Subtracks</h4>
                         {% for sub_track in form.sub_tracks %}
                             <div class="flex items-center gap-3">
-                                {{ sub_track.id(class="flex-1 h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="subtrack-id") }}
+                                {{ sub_track.form.id(class="flex-1 h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="subtrack-id") }}
                                 <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                    {{ sub_track.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                    {{ sub_track.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                     Remove
                                 </label>
                             </div>
@@ -273,15 +277,15 @@
                     {% for document in form.documents %}
                         <div class="grid md:grid-cols-3 gap-3 items-end">
                             <div>
-                                {{ document.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                {{ document.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                {{ document.form.id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                {{ document.form.id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                             </div>
                             <div>
-                                {{ document.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                                {{ document.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                                {{ document.form.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                                {{ document.form.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                             </div>
                             <label class="inline-flex items-center gap-2 text-xs text-gray-600">
-                                {{ document.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
+                                {{ document.form.remove(class='h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500') }}
                                 Remove
                             </label>
                         </div>
@@ -291,39 +295,40 @@
 
             <section class="space-y-5">
                 <h3 class="text-lg font-semibold text-gray-900">Content Experience</h3>
+                {% set ce_form = form.content_experience.form if form.content_experience.form is not none else form.content_experience %}
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        {{ form.content_experience.type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.content_experience.type(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ ce_form.type.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ ce_form.type(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                     <div>
-                        {{ form.content_experience.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.content_experience.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ ce_form.external_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ ce_form.external_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                     <div>
-                        {{ form.content_experience.pre_content_offset.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.content_experience.pre_content_offset(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ ce_form.pre_content_offset.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ ce_form.pre_content_offset(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                     <div>
-                        {{ form.content_experience.post_content_offset.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.content_experience.post_content_offset(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ ce_form.post_content_offset.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ ce_form.post_content_offset(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                 </div>
                 <div class="grid md:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Pre Content JSON</label>
-                        {{ form.content_experience.pre_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
-                        {{ render_errors(form.content_experience.pre_content_json.errors) }}
+                        {{ ce_form.pre_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
+                        {{ render_errors(ce_form.pre_content_json.errors) }}
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Post Content JSON</label>
-                        {{ form.content_experience.post_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
-                        {{ render_errors(form.content_experience.post_content_json.errors) }}
+                        {{ ce_form.post_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
+                        {{ render_errors(ce_form.post_content_json.errors) }}
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Main Content JSON</label>
-                        {{ form.content_experience.main_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
-                        {{ render_errors(form.content_experience.main_content_json.errors) }}
+                        {{ ce_form.main_content_json(class="w-full font-mono text-sm px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", rows="6") }}
+                        {{ render_errors(ce_form.main_content_json.errors) }}
                     </div>
                 </div>
                 <p class="text-xs text-gray-500">Provide valid JSON objects for content blocks. Leave blank to clear.</p>
