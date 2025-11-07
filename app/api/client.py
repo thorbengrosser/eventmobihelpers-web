@@ -128,17 +128,27 @@ class EventMobiClient:
             return response.get('data') or response
 
     def get_session_attendees(self, event_id, session_id):
-        """Fetch attendees using uapi people filter scheduled_session_id (CSV allowed)."""
-        # Prefer v4; fall back to default if needed
+        """Fetch attendees for a session using dedicated endpoints first, then fall back to filters."""
+        # First, try the dedicated sessions/{id}/people endpoint (v4)
+        people = self._get_all_paginated(
+            f'events/{event_id}/sessions/{session_id}/people',
+            version_accept='application/vnd.eventmobi+json; version=4',
+            page_size=200
+        )
+        if isinstance(people, list) and people:
+            return people
+
+        # Fallback: use people endpoint with scheduled_session_id filter (v4)
         people = self._get_all_paginated(
             f'events/{event_id}/people',
             params={'scheduled_session_id': session_id, 'sort': 'last_name'},
             version_accept='application/vnd.eventmobi+json; version=4',
             page_size=200
         )
-        if isinstance(people, list):
+        if isinstance(people, list) and people:
             return people
-        # Fallback single request if pagination helper failed
+
+        # Final fallback: single request without pagination helper
         response = self._make_request('GET', f'events/{event_id}/people', params={'scheduled_session_id': session_id})
         return response.get('data', []) if isinstance(response, dict) else []
 

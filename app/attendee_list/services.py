@@ -25,10 +25,28 @@ def fetch_session_attendees(session_id: str) -> List[Dict]:
     event_id = session.get('event_id')
     if not client or not event_id or not session_id:
         return []
-    attendees = client.get_session_attendees(event_id, session_id)
+    attendees = client.get_session_attendees(event_id, session_id) or []
+
+    # Deduplicate attendees because the API may return the same page multiple times when pagination is ignored
+    unique_attendees = []
+    seen_keys = set()
+    for a in attendees:
+        key = str(
+            a.get('id')
+            or a.get('person_id')
+            or a.get('email')
+            or a.get('work_email')
+            or a.get('personal_email')
+            or repr(a)
+        )
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        unique_attendees.append(a)
+
     # Normalize attendee fields: id, name, company, email
     normalized = []
-    for a in attendees:
+    for a in unique_attendees:
         normalized.append({
             'id': a.get('id') or a.get('person_id'),
             'name': a.get('name') or a.get('full_name') or f"{a.get('first_name','')} {a.get('last_name','')}".strip(),
