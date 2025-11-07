@@ -90,33 +90,35 @@
 
             <section class="space-y-5">
                 <h3 class="text-lg font-semibold text-gray-900">Location</h3>
+                {% set location_form = form.location.form %}
+                {% set map_location_form = location_form.map_location.form %}
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        {{ form.location.label.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.location.label(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                        {{ render_errors(form.location.label.errors) }}
+                        {{ location_form.label.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ location_form.label(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ render_errors(location_form.label.errors) }}
                     </div>
                     <div>
-                        {{ form.location.map_location.map_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.location.map_location.map_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ map_location_form.map_id.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ map_location_form.map_id(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                     <div>
-                        {{ form.location.map_location.label.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.location.map_location.label(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ map_location_form.label.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ map_location_form.label(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            {{ form.location.map_location.latitude.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                            {{ form.location.map_location.latitude(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                            {{ map_location_form.latitude.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                            {{ map_location_form.latitude(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                         </div>
                         <div>
-                            {{ form.location.map_location.longitude.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                            {{ form.location.map_location.longitude(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                            {{ map_location_form.longitude.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                            {{ map_location_form.longitude(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                         </div>
                     </div>
                     <div>
-                        {{ form.location.map_location.floor.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-                        {{ form.location.map_location.floor(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                        {{ map_location_form.floor.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+                        {{ map_location_form.floor(class="w-full h-10 px-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
                     </div>
                 </div>
             </section>
