@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Delete People by E-Mail - Results{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-4">Deletion Results</h2>
+
+  <p class="text-gray-500 mb-4">Event: {{ event_name }}</p>
+
+  {% if total is defined %}
+  <div class="mb-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium text-gray-700">Total processed:</span>
+      <span class="text-sm font-semibold text-gray-900">{{ total }}</span>
+    </div>
+    <div class="flex items-center justify-between mt-2">
+      <span class="text-sm font-medium text-green-700">Deleted:</span>
+      <span class="text-sm font-semibold text-green-600">{{ success_count }}</span>
+    </div>
+    <div class="flex items-center justify-between mt-2">
+      <span class="text-sm font-medium text-red-700">Failed / Not Found:</span>
+      <span class="text-sm font-semibold text-red-600">{{ error_count }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <ul class="space-y-2">
+    {% for result in results %}
+      <li class="flex items-center justify-between px-3 py-2 rounded border border-gray-100">
+        <span class="font-medium text-gray-900">{{ result.email }}</span>
+        {% if result.success %}
+          <span class="text-green-600">Deleted</span>
+        {% else %}
+          <span class="text-red-600">Failed — {{ result.error }}</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="mt-4 flex items-center gap-2">
+    <a
+      href="{{ url_for('delete_people_by_email.delete_people') }}"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Delete More
+    </a>
+    <a
+      href="{{ url_for('attendee_browser.browse_attendees') }}"
+      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Back to People List
+    </a>
+  </div>
+</div>
+{% endblock %}
+

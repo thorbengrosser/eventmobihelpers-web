@@ -3,6 +3,7 @@ from flask_wtf.csrf import CSRFProtect
 from .main import main as main_bp
 from .delete_sessions_group import delete_sessions_group as delete_sessions_bp
 from .add_people_to_group import add_people_to_group as add_people_bp
+from .delete_people_by_email import delete_people_by_email as delete_people_by_email_bp
 from .manage_chat import manage_attendee_settings
 from .mass_delete_sessions import mass_delete_sessions
 from .expert_session_editor import expert_session_editor
@@ -58,6 +59,7 @@ def create_app(config_name='default'):
     app.register_blueprint(main_bp)
     app.register_blueprint(delete_sessions_bp, url_prefix='/delete_sessions_group')
     app.register_blueprint(add_people_bp, url_prefix='/add_people_to_group')
+    app.register_blueprint(delete_people_by_email_bp, url_prefix='/delete_people_by_email')
     app.register_blueprint(manage_attendee_settings, url_prefix='/manage_attendee_settings')
     app.register_blueprint(mass_delete_sessions, url_prefix='/mass_delete_sessions')
     app.register_blueprint(expert_session_editor, url_prefix='/expert_session_editor')

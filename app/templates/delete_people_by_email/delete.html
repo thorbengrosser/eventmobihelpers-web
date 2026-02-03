@@ -1,0 +1,58 @@
+{% extends "base_form.html" %}
+
+{% block title %}Delete People by E-Mail{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Delete People by E-Mail</h2>
+  <p class="text-gray-500 mb-4">
+    Event: {{ event_name }}
+  </p>
+
+  <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+    <h3 class="text-sm font-semibold text-red-800 mb-1">Danger Zone</h3>
+    <p class="text-sm text-red-700">
+      This will permanently delete people from the event in EventMobi based on the email addresses you provide.
+      There is no undo. Make sure you have a backup before continuing.
+    </p>
+  </div>
+
+  <form method="POST" class="space-y-5">
+    {{ form.csrf_token }}
+    <div>
+      {{ form.emails.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+      {{ form.emails(
+        class="form-control w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500",
+        rows="10",
+        placeholder="Enter email addresses (one per line, or separated by commas, spaces, or semicolons)"
+      ) }}
+      <p class="mt-2 text-sm text-gray-500">
+        You can paste a list of emails from Excel, or enter them manually. The system will automatically detect the
+        format and will attempt to delete matching people from the event.
+      </p>
+      {% if form.emails.errors %}
+        {% for error in form.emails.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <div class="pt-2 flex items-center gap-2">
+      <button
+        type="submit"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+      >
+        <i class="fas fa-user-minus"></i>
+        Delete People
+      </button>
+      <a
+        href="{{ url_for('attendee_browser.browse_attendees') }}"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

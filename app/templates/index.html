@@ -39,6 +39,21 @@
         </div>
     </div>
 
+    <!-- Delete People by E-Mail -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-user-minus"></i>
+            <h2 class="card-title">Delete People by E-Mail</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Permanently remove people from the event by entering their email addresses.</p>
+            <a href="{{ url_for('delete_people_by_email.delete_people') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Delete People
+            </a>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <i class="fas fa-users-cog"></i>

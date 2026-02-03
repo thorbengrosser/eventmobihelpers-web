@@ -61,6 +61,12 @@
                                 <span>Add People to Groups by E-Mail</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ url_for('delete_people_by_email.delete_people') }}" class="nav-link" aria-label="Delete People by E-Mail">
+                                <i class="fas fa-user-minus"></i>
+                                <span>Delete People by E-Mail</span>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('manage_attendee_settings.select_group') }}">
                                 <i class="fas fa-users-cog"></i>
