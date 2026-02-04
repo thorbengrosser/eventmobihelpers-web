@@ -1,58 +1,48 @@
-import aiohttp
-import csv
-from flask import session
-import asyncio
-import requests
+from app.utils import get_api_client
 
-def get_session_uuid(api_key, event_id, session_external_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/sessions"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    params = {
-        "external_id": session_external_id
-    }
-    response = requests.get(url, headers=headers, params=params)
-    data = response.json()
-    if response.status_code == 200 and data.get("data"):
-        return data["data"][0]["id"]
-    return None
 
-async def delete_session(auth_token, event_id, uuid):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/{uuid}"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {auth_token}"
-    }
-    
-    async with aiohttp.ClientSession() as session:
-        async with session.delete(url, headers=headers) as response:
-            return await response.json()
-async def delete_session(session, event_id, uuid, auth_token):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/sessions/{uuid}"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {auth_token}"
-    }
-    async with session.delete(url, headers=headers) as response:
-        return await response.json()
-
-async def handle_session(session, event_id, session_external_id, auth_token):
-    uuid = await get_session_uuid(session, event_id, session_external_id, auth_token)
-    if uuid:
-        response = await delete_session(session, event_id, uuid, auth_token)
-        return f"Deleting session {session_external_id} (UUID: {uuid}): {response}"
-    else:
-        return f"Failed to retrieve UUID for session {session_external_id}"
-
-def fetch_events(api_key):
-    url = "https://uapi.eventmobi.com/events"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
+def fetch_events(event_id):
+    """Fetch events list (unused here but kept for compatibility)."""
+    client = get_api_client()
+    if not client:
         return []
-    return response.json().get('data', [])
+    try:
+        return client.get_events()
+    except Exception:
+        return []
+
+
+def get_session_uuid(event_id, session_external_id):
+    """
+    Look up a session by external_id and return its id (uuid).
+    session_external_id can be the session's external_id or the session's id.
+    """
+    client = get_api_client()
+    if not client:
+        return None
+    try:
+        sessions = client.list_sessions(event_id, external_id=session_external_id)
+        if sessions:
+            return sessions[0].get("id")
+        # Try as direct id
+        sessions = client.get_sessions(event_id)
+        for s in sessions:
+            if str(s.get("id")) == str(session_external_id) or str(s.get("external_id", "")) == str(session_external_id):
+                return s.get("id")
+        return None
+    except Exception:
+        return None
+
+
+def delete_session(event_id, session_id):
+    """
+    Delete a session. Returns status_code (e.g. 204 on success) for compatibility with routes.
+    """
+    client = get_api_client()
+    if not client:
+        return 500
+    try:
+        status_code, _ = client.delete_session(event_id, session_id)
+        return status_code
+    except Exception:
+        return 500

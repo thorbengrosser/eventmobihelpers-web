@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from .forms import SelectSessionForm, EnterEmailsForm
 from .services import fetch_person_by_email, add_session_to_personal_schedule
 from app.attendee_list.services import fetch_sessions
-from app.utils import get_api_key, log_action
+from app.utils import log_action
 from datetime import datetime
 import re
 import logging
@@ -101,12 +101,11 @@ def select_session():
 
 @add_attendee_to_session.route('/enter_emails', methods=['POST', 'GET'])
 def enter_emails():
-    api_key = get_api_key()
     event_id = session.get('event_id')
     session_id = session.get('selected_session_id')
     
-    if not api_key or not event_id:
-        logger.warning("Missing api_key or event_id, redirecting to index")
+    if not event_id:
+        logger.warning("Missing event_id, redirecting to index")
         return redirect(url_for('main.index'))
     
     if not session_id:
@@ -144,11 +143,11 @@ def enter_emails():
             
             for email in emails:
                 logger.debug(f"Processing email: {email}")
-                person = fetch_person_by_email(api_key, event_id, email)
+                person = fetch_person_by_email(event_id, email)
                 if person:
                     person_id = person.get('id')
                     logger.debug(f"Found person {person_id} for email {email}")
-                    success, error_msg = add_session_to_personal_schedule(api_key, event_id, person_id, session_id)
+                    success, error_msg = add_session_to_personal_schedule(event_id, person_id, session_id)
                     if success:
                         results.append({
                             'email': email,
@@ -241,15 +240,14 @@ def process_emails_batch():
         logger.error(f"Error parsing JSON: {e}")
         request_data = {}
     
-    api_key = get_api_key()
     event_id = session.get('event_id')
     session_id = session.get('selected_session_id')
     
     logger.debug(f"Processing batch - event_id: {event_id}, session_id: {session_id}")
     logger.debug(f"Session keys: {list(session.keys())}")
     
-    if not api_key or not event_id or not session_id:
-        logger.error(f"Missing parameters - api_key: {bool(api_key)}, event_id: {event_id}, session_id: {session_id}")
+    if not event_id or not session_id:
+        logger.error(f"Missing parameters - event_id: {event_id}, session_id: {session_id}")
         return jsonify({'error': 'Missing required parameters'}), 400
     
     # Get batch from server-side storage instead of session
@@ -281,11 +279,11 @@ def process_emails_batch():
     
     for email in batch_emails:
         logger.debug(f"Processing email: {email}")
-        person = fetch_person_by_email(api_key, event_id, email)
+        person = fetch_person_by_email(event_id, email)
         if person:
             person_id = person.get('id')
             logger.debug(f"Found person {person_id} for email {email}")
-            success, error_msg = add_session_to_personal_schedule(api_key, event_id, person_id, session_id)
+            success, error_msg = add_session_to_personal_schedule(event_id, person_id, session_id)
             if success:
                 results.append({
                     'email': email,

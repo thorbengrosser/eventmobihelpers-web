@@ -1,62 +1,62 @@
-import requests
 import logging
+from app.utils import get_api_client
 
 logger = logging.getLogger(__name__)
 
-def fetch_events(api_key):
-    url = "https://uapi.eventmobi.com/events"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    logger.debug(f"Fetching events from {url}")
-    response = requests.get(url, headers=headers)
-    logger.debug(f"Events API response status: {response.status_code}")
-    if response.status_code != 200:
-        logger.error(f"Failed to fetch events: {response.text}")
-        return None
-    return response.json().get('data', [])
 
-def fetch_groups(api_key, event_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people/groups"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    logger.debug(f"Fetching groups from {url}")
-    response = requests.get(url, headers=headers)
-    logger.debug(f"Groups API response status: {response.status_code}")
-    if response.status_code != 200:
-        logger.error(f"Failed to fetch groups: {response.text}")
+def fetch_events():
+    """Fetch all events using the shared API client."""
+    client = get_api_client()
+    if not client:
         return None
-    return response.json().get('data', [])
-
-def fetch_person_by_email(api_key, event_id, email):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people?include=groups&email={email}"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    logger.debug(f"Fetching person by email from {url}")
-    response = requests.get(url, headers=headers)
-    logger.debug(f"Person API response status: {response.status_code}")
-    if response.status_code != 200:
-        logger.error(f"Failed to fetch person: {response.text}")
+    try:
+        return client.get_events()
+    except Exception as e:
+        logger.error("Failed to fetch events: %s", e)
         return None
-    data = response.json().get('data', [])
-    logger.debug(f"Found person data: {data}")
-    return data[0] if data else None
 
-def update_person_groups(api_key, event_id, person_id, groups):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people/{person_id}"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    # groups is now a list of group objects (with id and external_id)
-    data = {"groups": groups}
-    logger.debug(f"Updating person groups at {url} with data: {data}")
-    response = requests.patch(url, json=data, headers=headers)
-    logger.debug(f"Update groups API response status: {response.status_code}")
-    logger.debug(f"Update groups API response: {response.text}")
-    return response.status_code, response.json()
+
+def fetch_groups(event_id):
+    """Fetch people groups for an event using the shared API client."""
+    client = get_api_client()
+    if not client:
+        return None
+    try:
+        return client.list_people_groups(event_id)
+    except Exception as e:
+        logger.error("Failed to fetch groups: %s", e)
+        return None
+
+
+def fetch_person_by_email(event_id, email):
+    """Fetch a person by email using the shared API client."""
+    client = get_api_client()
+    if not client:
+        return None
+    try:
+        people = client.list_people(event_id, email=email, include="groups")
+        return people[0] if people else None
+    except Exception as e:
+        logger.error("Failed to fetch person by email: %s", e)
+        return None
+
+
+def update_person_groups(event_id, person_id, groups):
+    """
+    Update a person's groups (PATCH). groups is a list of group objects with id and optionally external_id.
+    Returns (status_code, response_body) for compatibility with existing routes.
+    """
+    client = get_api_client()
+    if not client:
+        return 0, None
+    try:
+        client.update_person(event_id, person_id, {"groups": groups})
+        return 200, {}
+    except Exception as e:
+        logger.error("Failed to update person groups: %s", e)
+        status = getattr(getattr(e, "response", None), "status_code", 500)
+        try:
+            body = getattr(getattr(e, "response", None), "json", lambda: {})() or {}
+        except Exception:
+            body = {"error": str(e)}
+        return status, body

@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, session, request
 from . import delete_people_by_email
 from .forms import DeletePeopleEmailForm
 from .services import parse_emails, fetch_person_by_email, delete_person
-from app.utils import log_action, get_api_key
+from app.utils import log_action
 import logging
 
 
@@ -14,11 +14,10 @@ def delete_people():
     """
     Delete attendees (people) from the event by email address.
     """
-    api_key = get_api_key()
     event_id = session.get('event_id')
 
-    if not api_key or not event_id:
-        logger.warning("Missing api_key or event_id, redirecting to index")
+    if not event_id:
+        logger.warning("Missing event_id, redirecting to index")
         return redirect(url_for('main.index'))
 
     form = DeletePeopleEmailForm()
@@ -39,7 +38,7 @@ def delete_people():
 
         for email in emails:
             logger.debug("Attempting to delete person with email: %s", email)
-            person = fetch_person_by_email(api_key, event_id, email)
+            person = fetch_person_by_email(event_id, email)
 
             if not person:
                 logger.warning("No person found with email: %s", email)
@@ -62,7 +61,7 @@ def delete_people():
                 error_count += 1
                 continue
 
-            status_code, response_text = delete_person(api_key, event_id, person_id)
+            status_code, response_text = delete_person(event_id, person_id)
             if status_code in (200, 202, 204):
                 results.append({
                     'email': email,

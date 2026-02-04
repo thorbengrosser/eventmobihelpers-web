@@ -1,0 +1,37 @@
+{% extends "base_form.html" %}
+
+{% block title %}Batch Editor – Update fields{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Batch Editor – Update fields</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name }} | Resource: {{ resource }}</p>
+  <p class="text-gray-600 mb-4">Set the fields below. Leave blank for "no change". Same values will be applied to all items in scope.</p>
+
+  <form method="POST" class="space-y-5">
+    {{ form.csrf_token }}
+    {% if resource == 'people' %}
+      <div>{{ form.first_name.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.first_name(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.last_name.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.last_name(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.email.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.email(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.title.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.title(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.company_name.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.company_name(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.chat_enabled.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.chat_enabled(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md") }}</div>
+      <div>{{ form.is_profile_visible.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.is_profile_visible(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md") }}</div>
+    {% elif resource == 'sessions' %}
+      <div>{{ form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.name(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+      <div>{{ form.description.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.description(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", rows=3, placeholder="Leave blank to keep current") }}</div>
+    {% elif resource == 'companies' %}
+      <div>{{ form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}{{ form.name(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md", placeholder="Leave blank to keep current") }}</div>
+    {% endif %}
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" class="btn btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        Apply to batch
+      </button>
+      <a href="{{ url_for('batch_editor.step_action') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        Back
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

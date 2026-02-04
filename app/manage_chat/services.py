@@ -1,65 +1,66 @@
-import requests
+from app.utils import get_api_client
 
-def fetch_events(api_key):
-    url = "https://uapi.eventmobi.com/events"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
+
+def fetch_events():
+    """Fetch all events using the shared API client."""
+    client = get_api_client()
+    if not client:
         return None
-    return response.json().get('data', [])
-
-def fetch_groups(api_key, event_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people/groups"
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
+    try:
+        return client.get_events()
+    except Exception:
         return None
-    return response.json().get('data', [])
 
-def fetch_people_in_group(api_key, event_id, group_id):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people"
-    querystring = {"group_id": group_id}
-    headers = {
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    response = requests.get(url, headers=headers, params=querystring)
-    if response.status_code != 200:
+
+def fetch_groups(event_id):
+    """Fetch people groups for an event using the shared API client."""
+    client = get_api_client()
+    if not client:
         return None
-    return response.json().get('data', [])
+    try:
+        return client.list_people_groups(event_id)
+    except Exception:
+        return None
 
-def update_attendee_settings(api_key, event_id, person_id, settings):
-    url = f"https://uapi.eventmobi.com/events/{event_id}/people/{person_id}"
-    
-    # Prepare the payload with all settings
+
+def fetch_people_in_group(event_id, group_id):
+    """Fetch people in a group using the shared API client."""
+    client = get_api_client()
+    if not client:
+        return None
+    try:
+        return client.list_people(event_id, group_id=group_id)
+    except Exception:
+        return None
+
+
+def update_attendee_settings(event_id, person_id, settings):
+    """
+    Update attendee settings (public_preferences, private_preferences) using the shared API client.
+    Returns (status_code, response_body) for compatibility with existing routes.
+    """
+    client = get_api_client()
+    if not client:
+        return 0, None
     payload = {
         "public_preferences": {
-            "chat_enabled": settings.get('enable_chat'),
-            "is_profile_visible": settings.get('is_profile_visible')
+            "chat_enabled": settings.get("enable_chat"),
+            "is_profile_visible": settings.get("is_profile_visible"),
         },
         "private_preferences": {
-            "receive_organizer_email": settings.get('receive_organizer_email'),
-            "receive_attendee_email": settings.get('receive_attendee_email'),
-            "attendee_push_notifications_enabled": settings.get('attendee_push_notifications'),
-            "offline_notifications_enabled": settings.get('offline_notifications')
-        }
+            "receive_organizer_email": settings.get("receive_organizer_email"),
+            "receive_attendee_email": settings.get("receive_attendee_email"),
+            "attendee_push_notifications_enabled": settings.get("attendee_push_notifications"),
+            "offline_notifications_enabled": settings.get("offline_notifications"),
+        },
     }
-    
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/vnd.eventmobi+json; version=3",
-        "Authorization": f"Bearer {api_key}"
-    }
-    
-    print(f"DEBUG: Updating settings for person {person_id} with payload: {payload}")
-    response = requests.patch(url, json=payload, headers=headers)
-    print(f"DEBUG: API Response status: {response.status_code}")
-    print(f"DEBUG: API Response body: {response.text}")
-    
-    return response.status_code, response.json()
+    try:
+        client.update_person(event_id, person_id, payload)
+        return 200, {}
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", 500)
+        try:
+            body = getattr(getattr(e, "response", None), "json", lambda: {})() or {}
+        except Exception:
+            body = {"error": str(e)}
+        return status, body

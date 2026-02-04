@@ -2,7 +2,6 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 from app.utils import get_api_client
 from flask import session
-import requests
 import hashlib
 import json
 import logging
@@ -36,28 +35,17 @@ def list_attendees(event_id: str, page: int = 1, per_page: int = 50, filters: Op
             all_items = _attendee_cache[cache_key]['items']
             cached_total = _attendee_cache[cache_key]['total']
         else:
-            # Fetch all items from API (API seems to ignore pagination)
-            # Build API params (without pagination - fetch all)
+            # Fetch all items from API using shared client (with pagination)
             api_params = {}
+            if filters and filters.get('eq', {}).get('group_id'):
+                api_params['group_id'] = filters['eq']['group_id']
+            try:
+                all_items = client.list_people(event_id, **api_params)
+            except Exception as e:
+                logger.warning("list_people failed: %s", e)
+                all_items = []
             
-            # Try to pass filters to API when possible
-            if filters:
-                # Group ID filter - API supports this
-                if filters.get('eq', {}).get('group_id'):
-                    api_params['group_id'] = filters['eq']['group_id']
-            
-            # Make API request
-            headers = dict(client.headers)
-            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
-            url = f"{client.BASE_URL}/events/{event_id}/people"
-            
-            # Fetch all data (API seems to return all regardless of pagination params)
-            resp = requests.get(url, headers=headers, params=api_params, timeout=30)
-            resp.raise_for_status()
-            response_data = resp.json()
-            
-            # Extract data
-            all_items = response_data.get('data', [])
+            response_data = {'data': all_items, 'meta': {'pagination': {}}}
             
             # Remove duplicates based on ID if present
             seen_ids = set()

@@ -178,3 +178,15 @@ def select_event_api(event_id):
             'success': False,
             'error': str(e)
         }), 500
+
+
+@main.route('/debug/routes')
+def debug_routes():
+    """List all registered routes (only when DEBUG). Use to verify batch_editor is loaded."""
+    if not current_app.debug:
+        return jsonify({'error': 'Not available'}), 404
+    rules = []
+    for rule in current_app.url_map.iter_rules():
+        rules.append({'rule': rule.rule, 'endpoint': rule.endpoint, 'methods': list(rule.methods - {'HEAD', 'OPTIONS'})})
+    rules.sort(key=lambda r: r['rule'])
+    return jsonify({'routes': rules})

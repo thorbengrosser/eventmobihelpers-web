@@ -1,0 +1,33 @@
+{% extends "base_form.html" %}
+
+{% block title %}Batch Editor – Choose Resource{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Batch Editor – Step 1: Resource</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name }}</p>
+  <p class="text-gray-600 mb-4">Choose what you want to edit (people, sessions, etc.).</p>
+
+  <form method="POST" class="space-y-5">
+    {{ form.csrf_token }}
+    <div>
+      {{ form.resource.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+      {{ form.resource(class="form-control w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+      {% if form.resource.errors %}
+        {% for error in form.resource.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" class="btn btn-primary inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        <i class="fas fa-arrow-right"></i>
+        Next
+      </button>
+      <a href="{{ url_for('main.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

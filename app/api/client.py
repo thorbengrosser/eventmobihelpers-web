@@ -99,22 +99,93 @@ class EventMobiClient:
             return response.get('data', []) if isinstance(response, dict) else response
         except Exception as e:
             raise Exception(f"Failed to fetch sessions for event {event_id}: {str(e)}")
-    
-    def get_tracks(self, event_id):
-        """Get all tracks for a specific event."""
+
+    def list_sessions(self, event_id, **filters):
+        """List sessions with optional filters (track_id, external_id, search, sort, etc.)."""
+        params = dict(filters) if filters else {}
+        params.setdefault('sort', 'start_datetime')
         try:
-            response = self._make_request('GET', f'events/{event_id}/tracks')
+            data = self._get_all_paginated(
+                f'events/{event_id}/sessions',
+                params=params,
+                version_accept='application/vnd.eventmobi+json; version=4',
+                limit=1000
+            )
+            return data if data else []
+        except Exception as e:
+            raise Exception(f"Failed to list sessions for event {event_id}: {str(e)}")
+
+    def get_session(self, event_id, session_id, include=None):
+        """Get a single session by ID. Optional include: location,chat,external_links,tracks,roles,settings,documents,content_experience,accessibility."""
+        try:
+            params = {}
+            if include:
+                params['include'] = include
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}"
+            resp = requests.get(url, headers=headers, params=params or None, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to fetch session: {str(e)}")
+
+    def create_session(self, event_id, body):
+        """Create a new session."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/sessions"
+            resp = requests.post(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to create session: {str(e)}")
+
+    def update_session(self, event_id, session_id, body):
+        """Update a session (PATCH)."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}"
+            resp = requests.patch(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to update session: {str(e)}")
+
+    def delete_session(self, event_id, session_id):
+        """Delete a session. Returns (status_code, response_text) for callers that need to surface errors."""
+        try:
+            headers = dict(self.headers)
+            url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}"
+            resp = requests.delete(url, headers=headers, timeout=10)
+            return resp.status_code, resp.text
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to delete session: {str(e)}")
+
+    def get_tracks(self, event_id):
+        """Get all tracks for a specific event. Path: events/{event_id}/sessions/tracks (v4)."""
+        try:
+            response = self._make_request('GET', f'events/{event_id}/sessions/tracks')
             return response.get('data', [])
         except Exception as e:
             raise Exception(f"Failed to fetch tracks for event {event_id}: {str(e)}")
-    
-    def get_groups(self, event_id):
-        """Get all groups for a specific event."""
+
+    def list_people_groups(self, event_id):
+        """List people groups for an event. Path: events/{event_id}/people/groups (v4)."""
         try:
-            response = self._make_request('GET', f'events/{event_id}/groups')
+            response = self._make_request('GET', f'events/{event_id}/people/groups')
             return response.get('data', [])
         except Exception as e:
-            raise Exception(f"Failed to fetch groups for event {event_id}: {str(e)}")
+            raise Exception(f"Failed to fetch people groups for event {event_id}: {str(e)}")
+
+    def get_groups(self, event_id):
+        """Get all people groups for a specific event (alias for list_people_groups)."""
+        return self.list_people_groups(event_id)
     
     def get_people(self, event_id):
         """Get all people for a specific event."""
@@ -128,7 +199,102 @@ class EventMobiClient:
                 return response.get('data', [])
             return data
         except Exception as e:
-            raise Exception(f"Failed to fetch people for event {event_id}: {str(e)}") 
+            raise Exception(f"Failed to fetch people for event {event_id}: {str(e)}")
+
+    def list_people(self, event_id, **filters):
+        """List people with optional filters (email, emails, group_ids, registration_status, scheduled_session_id, search, sort, etc.)."""
+        params = dict(filters) if filters else None
+        try:
+            data = self._get_all_paginated(
+                f'events/{event_id}/people',
+                params=params,
+                version_accept='application/vnd.eventmobi+json; version=4',
+                limit=1000
+            )
+            return data if data else []
+        except Exception as e:
+            raise Exception(f"Failed to list people for event {event_id}: {str(e)}")
+
+    def create_person(self, event_id, body):
+        """Create a new person. Body must include first_name, last_name (and optional email, etc.)."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/people"
+            resp = requests.post(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to create person: {str(e)}")
+
+    def update_person(self, event_id, people_id, body):
+        """Update a person (PATCH). Body can include first_name, last_name, groups, public_preferences, etc."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            headers['x-nested-list-partial-updates'] = '1'
+            url = f"{self.BASE_URL}/events/{event_id}/people/{people_id}"
+            resp = requests.patch(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to update person: {str(e)}")
+
+    def delete_person(self, event_id, people_id):
+        """Delete a person. Returns (status_code, response_text) for callers that need to surface errors."""
+        try:
+            headers = dict(self.headers)
+            url = f"{self.BASE_URL}/events/{event_id}/people/{people_id}"
+            resp = requests.delete(url, headers=headers, timeout=10)
+            return resp.status_code, resp.text
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to delete person: {str(e)}")
+
+    def add_to_schedule(self, event_id, people_id, session_id):
+        """
+        Add a session to a person's personal schedule.
+
+        Implementation detail: instead of using the dedicated Personal Schedule POST endpoint,
+        this uses the People PATCH endpoint with `scheduled_sessions` and
+        `x-nested-list-partial-updates=1`, which appends the session to the existing schedule.
+        """
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            headers['Content-Type'] = 'application/json'
+            headers['x-nested-list-partial-updates'] = '1'
+            url = f"{self.BASE_URL}/events/{event_id}/people/{people_id}"
+            body = {"scheduled_sessions": [{"id": session_id}]}
+            resp = requests.patch(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            return True, None
+        except requests.exceptions.RequestException as e:
+            try:
+                err_msg = e.response.json() if e.response else {}
+                if isinstance(err_msg, dict) and err_msg.get('errors'):
+                    msg = err_msg['errors'][0].get('message', str(err_msg['errors'][0]))
+                elif isinstance(err_msg, dict) and err_msg.get('error'):
+                    msg = err_msg['error'].get('message', str(err_msg['error']))
+                else:
+                    msg = e.response.text if e.response else str(e)
+            except Exception:
+                msg = e.response.text if e.response and hasattr(e, 'response') else str(e)
+            return False, msg
+
+    def remove_from_schedule(self, event_id, people_id, session_id):
+        """Remove a session from a person's personal schedule (DELETE people/{id}/schedule/{session_id})."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/people/{people_id}/schedule/{session_id}"
+            resp = requests.delete(url, headers=headers, timeout=10)
+            resp.raise_for_status()
+            return True, None
+        except requests.exceptions.RequestException as e:
+            msg = e.response.text if e.response and hasattr(e, 'response') else str(e)
+            return False, msg
 
     def get_person(self, event_id, person_id):
         """Get a single person by ID."""
@@ -269,3 +435,53 @@ class EventMobiClient:
         # 5) person sample quick check (if caller wants to verify a known person)
         report['hint'] = 'If you share this report, I can wire the correct endpoint/filter without guessing.'
         return report
+
+    def list_companies(self, event_id, **filters):
+        """List companies for an event with optional filters."""
+        params = dict(filters) if filters else None
+        try:
+            data = self._get_all_paginated(
+                f'events/{event_id}/companies',
+                params=params,
+                version_accept='application/vnd.eventmobi+json; version=4',
+                limit=1000
+            )
+            return data if data else []
+        except Exception as e:
+            raise Exception(f"Failed to list companies for event {event_id}: {str(e)}")
+
+    def get_company(self, event_id, company_id):
+        """Get a single company by ID."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/companies/{company_id}"
+            resp = requests.get(url, headers=headers, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to fetch company: {str(e)}")
+
+    def update_company(self, event_id, company_id, body):
+        """Update a company (PATCH)."""
+        try:
+            headers = dict(self.headers)
+            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
+            url = f"{self.BASE_URL}/events/{event_id}/companies/{company_id}"
+            resp = requests.patch(url, headers=headers, json=body, timeout=10)
+            resp.raise_for_status()
+            out = resp.json()
+            return out.get('data') or out
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to update company: {str(e)}")
+
+    def delete_company(self, event_id, company_id):
+        """Delete a company. Returns (status_code, response_text)."""
+        try:
+            headers = dict(self.headers)
+            url = f"{self.BASE_URL}/events/{event_id}/companies/{company_id}"
+            resp = requests.delete(url, headers=headers, timeout=10)
+            return resp.status_code, resp.text
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Failed to delete company: {str(e)}")

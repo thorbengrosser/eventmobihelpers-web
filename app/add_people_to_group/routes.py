@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, session, request, j
 from . import add_people_to_group
 from .forms import GroupForm, EmailForm
 from .services import fetch_groups, fetch_person_by_email, update_person_groups
-from app.utils import log_action, get_api_key
+from app.utils import log_action
 import logging
 import re
 import uuid
@@ -24,13 +24,12 @@ def parse_emails(email_text):
 
 @add_people_to_group.route('/select_group', methods=['GET', 'POST'])
 def select_group():
-    api_key = get_api_key()
     event_id = session.get('event_id')
-    if not api_key or not event_id:
-        logger.warning("Missing api_key or event_id, redirecting to index")
+    if not event_id:
+        logger.warning("Missing event_id, redirecting to index")
         return redirect(url_for('main.index'))
 
-    groups = fetch_groups(api_key, event_id)
+    groups = fetch_groups(event_id)
     logger.debug(f"Fetched groups: {groups}")
     form = GroupForm()
     form.group.choices = [(group['id'], group['name']) for group in groups]
@@ -60,13 +59,12 @@ def _cleanup_old_batches():
 
 @add_people_to_group.route('/add_people', methods=['GET', 'POST'])
 def add_people():
-    api_key = get_api_key()
     event_id = session.get('event_id')
     group_id = session.get('group_id')
     logger.debug(f"Current session state - event_id: {event_id}, group_id: {group_id}")
     
-    if not api_key or not event_id or not group_id:
-        logger.warning("Missing api_key, event_id, or group_id, redirecting to index")
+    if not event_id or not group_id:
+        logger.warning("Missing event_id or group_id, redirecting to index")
         return redirect(url_for('main.index'))
 
     form = EmailForm()
@@ -95,7 +93,7 @@ def add_people():
         # For small batches (< 50), process immediately
         if len(emails) < 50:
             # Fetch all groups for the event so we can look up external_id and other fields
-            all_groups = fetch_groups(api_key, event_id) or []
+            all_groups = fetch_groups(event_id) or []
             all_groups_dict = {g['id']: g for g in all_groups if 'id' in g}
             
             results = []
@@ -105,7 +103,7 @@ def add_people():
 
             for email in emails:
                 logger.debug(f"Attempting to add person with email: {email}")
-                person = fetch_person_by_email(api_key, event_id, email)
+                person = fetch_person_by_email(event_id, email)
                 if person:
                     logger.debug(f"Found person: {person}")
                     # Get current group objects
@@ -123,7 +121,7 @@ def add_people():
                                 'id': group_obj['id'],
                                 'external_id': group_obj['external_id']
                             })
-                    status_code, response = update_person_groups(api_key, event_id, person['id'], updated_group_objs)
+                    status_code, response = update_person_groups(event_id, person['id'], updated_group_objs)
                     logger.debug(f"Update response - status: {status_code}, body: {response}")
                     if status_code == 200:
                         results.append({
@@ -200,7 +198,6 @@ def process_emails_batch():
         logger.error(f"Error parsing JSON: {e}")
         request_data = {}
     
-    api_key = get_api_key()
     event_id = session.get('event_id')
     
     # Get batch from server-side storage instead of session
@@ -230,7 +227,7 @@ def process_emails_batch():
     logger.info(f"Processing batch - start_index: {start_index}, batch_size: {batch_size}")
     
     # Fetch all groups for the event (only once, could be cached but keeping it simple)
-    all_groups = fetch_groups(api_key, event_id) or []
+    all_groups = fetch_groups(event_id) or []
     all_groups_dict = {g['id']: g for g in all_groups if 'id' in g}
     
     # Process this batch
@@ -239,7 +236,7 @@ def process_emails_batch():
     
     for email in batch_emails:
         logger.debug(f"Processing email: {email}")
-        person = fetch_person_by_email(api_key, event_id, email)
+        person = fetch_person_by_email(event_id, email)
         if person:
             logger.debug(f"Found person: {person}")
             # Get current group objects
@@ -257,7 +254,7 @@ def process_emails_batch():
                         'id': group_obj['id'],
                         'external_id': group_obj['external_id']
                     })
-            status_code, response = update_person_groups(api_key, event_id, person['id'], updated_group_objs)
+            status_code, response = update_person_groups(event_id, person['id'], updated_group_objs)
             logger.debug(f"Update response - status: {status_code}, body: {response}")
             if status_code == 200:
                 results.append({

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Editor – Result{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Batch Editor – Result</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name }} | Resource: {{ resource }} | Action: {{ action }}</p>
+
+  <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
+    <p><strong>Total:</strong> {{ total }}</p>
+    <p><strong>Succeeded:</strong> {{ success_count }}</p>
+    <p><strong>Failed:</strong> {{ error_count }}</p>
+  </div>
+
+  {% if error_count > 0 %}
+  <div class="mb-4">
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Failures</h3>
+    <ul class="list-disc pl-6 space-y-1">
+      {% for r in results %}
+        {% if not r.success %}
+          <li><code>{{ r.id }}</code>: {{ r.error or 'Unknown error' }}</li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="pt-2 flex flex-wrap gap-2">
+    <a href="{{ url_for('batch_editor.step_resource') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+      <i class="fas fa-redo"></i>
+      New batch
+    </a>
+    <a href="{{ url_for('batch_editor.result_export') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+      <i class="fas fa-download"></i>
+      Download full report (CSV)
+    </a>
+    {% if error_count > 0 %}
+    <a href="{{ url_for('batch_editor.result_export') }}?failures=1" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+      <i class="fas fa-download"></i>
+      Download failures (CSV)
+    </a>
+    {% endif %}
+    <a href="{{ url_for('main.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+      Home
+    </a>
+  </div>
+</div>
+{% endblock %}

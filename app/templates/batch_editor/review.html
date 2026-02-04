@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Editor – Review{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Batch Editor – Step 4: Review</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name }}</p>
+
+  <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
+    <p><strong>Resource:</strong> {{ resource }}</p>
+    <p><strong>Scope:</strong> {{ scope_count }} item(s)</p>
+    <p><strong>Action:</strong> {{ action }}</p>
+    {% if action_payload %}
+      <p><strong>Payload:</strong> {{ action_payload }}</p>
+    {% endif %}
+  </div>
+
+  <form method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" name="confirm" value="1" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        <i class="fas fa-play"></i>
+        Run batch
+      </button>
+      <a href="{{ url_for('batch_editor.step_action') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        Back
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

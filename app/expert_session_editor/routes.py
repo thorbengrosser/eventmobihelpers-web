@@ -6,7 +6,7 @@ from flask import render_template, redirect, url_for, session, flash, request
 from . import expert_session_editor
 from .forms import SessionForm, EditSessionForm
 from .services import fetch_sessions, fetch_session_details, update_session
-from app.utils import log_action, get_api_key
+from app.utils import log_action
 
 
 def _parse_iso_datetime(value):
@@ -501,12 +501,11 @@ def _diff_payload(initial, current):
 
 @expert_session_editor.route('/select_session', methods=['GET', 'POST'])
 def select_session():
-    api_key = get_api_key()
     event_id = session.get('event_id')
-    if not api_key or not event_id:
+    if not event_id:
         return redirect(url_for('main.index'))
 
-    sessions = fetch_sessions(api_key, event_id)
+    sessions = fetch_sessions(event_id)
     form = SessionForm()
     form.session.choices = [(session['id'], session['name']) for session in sessions]
 
@@ -518,13 +517,12 @@ def select_session():
 
 @expert_session_editor.route('/edit_session', methods=['GET', 'POST'])
 def edit_session():
-    api_key = get_api_key()
     event_id = session.get('event_id')
     session_id = session.get('session_id')
-    if not api_key or not event_id or not session_id:
+    if not event_id or not session_id:
         return redirect(url_for('main.index'))
 
-    session_details = fetch_session_details(api_key, event_id, session_id)
+    session_details = fetch_session_details(event_id, session_id)
     if not session_details:
         flash('Unable to load session details. Please try again.', 'error')
         return redirect(url_for('expert_session_editor.select_session'))
@@ -562,7 +560,7 @@ def edit_session():
                 flash('No changes detected.', 'info')
                 return redirect(url_for('expert_session_editor.edit_session'))
 
-            response = update_session(api_key, event_id, session_id, diff_payload)
+            response = update_session(event_id, session_id, diff_payload)
             if response and response.get('errors'):
                 for error in response['errors']:
                     flash(error.get('message', 'Unknown error'), 'error')
