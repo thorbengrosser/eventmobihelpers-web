@@ -39,18 +39,18 @@
   <table>
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Company</th>
-        <th>Email</th>
+        {% for key, label in columns %}
+        <th>{{ label }}</th>
+        {% endfor %}
         <th class="checkbox-cell">Checked</th>
       </tr>
     </thead>
     <tbody>
       {% for a in attendees %}
       <tr>
-        <td>{{ a.name }}</td>
-        <td>{{ a.company }}</td>
-        <td>{{ a.email }}</td>
+        {% for key, label in columns %}
+        <td>{{ get_cell_value(a, key) }}</td>
+        {% endfor %}
         <td class="checkbox-cell"><input type="checkbox"></td>
       </tr>
       {% endfor %}

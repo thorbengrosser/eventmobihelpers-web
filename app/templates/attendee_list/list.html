@@ -7,29 +7,43 @@
     <span class="font-semibold">Attendee List</span>
   </div>
   <div class="p-6">
-    <div class="mb-4">
-      <a href="{{ url_for('attendee_list.print_attendees', session_id=session_id) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <div class="mb-4 flex flex-wrap items-center gap-4">
+        <a href="{{ url_for('attendee_list.print_attendees', session_id=session_id, columns=columns_param) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
         <i class="fas fa-print"></i>
         Open Printable Version
       </a>
+      <form method="get" action="{{ url_for('attendee_list.list_attendees') }}" class="flex flex-wrap items-center gap-2" id="columnForm">
+        <input type="hidden" name="session_id" value="{{ session_id }}">
+        <span class="text-sm text-gray-600">Columns:</span>
+        <div class="flex flex-wrap gap-2">
+          {% for key, label in available_columns %}
+          <label class="inline-flex items-center gap-1.5 text-sm">
+            <input type="checkbox" name="col" value="{{ key }}" class="w-4 h-4 text-blue-600 rounded column-cb"
+              {% if key in selected_column_keys %}checked{% endif %}>
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <button type="submit" class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+      </form>
     </div>
     {% if attendees %}
     <div class="overflow-x-auto">
       <table class="min-w-full text-sm">
         <thead>
           <tr class="text-left text-gray-500">
-            <th class="py-2 pr-4">Name</th>
-            <th class="py-2 pr-4">Company</th>
-            <th class="py-2 pr-4">Email</th>
+            {% for key, label in columns %}
+            <th class="py-2 pr-4">{{ label }}</th>
+            {% endfor %}
             <th class="py-2 pr-4">Checked</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
           {% for a in attendees %}
           <tr class="text-gray-900">
-            <td class="py-2 pr-4">{{ a.name }}</td>
-            <td class="py-2 pr-4">{{ a.company }}</td>
-            <td class="py-2 pr-4">{{ a.email }}</td>
+            {% for key, label in columns %}
+            <td class="py-2 pr-4">{{ get_cell_value(a, key) }}</td>
+            {% endfor %}
             <td class="py-2 pr-4"><input type="checkbox" class="w-4 h-4 text-blue-600 rounded" /></td>
           </tr>
           {% endfor %}
@@ -41,6 +55,21 @@
     {% endif %}
   </div>
 </div>
+<script>
+(function() {
+  const form = document.getElementById('columnForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const checked = Array.from(form.querySelectorAll('.column-cb:checked')).map(cb => cb.value);
+    const cols = checked.length ? checked.join(',') : 'name,company,email';
+    const url = new URL(form.action);
+    url.searchParams.set('session_id', '{{ session_id }}');
+    url.searchParams.set('columns', cols);
+    window.location.href = url.toString();
+  });
+})();
+</script>
 {% endblock %}
 
 

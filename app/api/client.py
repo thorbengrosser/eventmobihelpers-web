@@ -311,12 +311,28 @@ class EventMobiClient:
             response = self._make_request('GET', f'events/{event_id}/people/{person_id}')
             return response.get('data') or response
 
-    def get_session_attendees(self, event_id, session_id):
-        """Fetch attendees for a session using dedicated endpoints first, then fall back to filters."""
+    def list_people_custom_fields(self, event_id):
+        """Get all people custom fields configured for the event. Returns list of field definitions with id, name, etc."""
+        try:
+            data = self._get_all_paginated(
+                f'events/{event_id}/people/fields',
+                version_accept='application/vnd.eventmobi+json; version=4',
+                limit=500
+            )
+            return data if isinstance(data, list) else []
+        except Exception as e:
+            current_app.logger.warning("list_people_custom_fields failed: %s", e)
+            return []
+
+    def get_session_attendees(self, event_id, session_id, include=None):
+        """Fetch attendees for a session using dedicated endpoints first, then fall back to filters.
+        Optional include: e.g. 'custom_fields' to fetch custom field values (see People API include param)."""
         try:
             headers = dict(self.headers)
             headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
             params = {'limit': 500, 'page': 0}
+            if include:
+                params['include'] = include
             url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}/people"
 
             results = []
@@ -342,9 +358,12 @@ class EventMobiClient:
             current_app.logger.warning(f"sessions/{session_id}/people endpoint failed: {e}")
 
         # Fallback: use people endpoint with scheduled_session_id filter (v4)
+        fallback_params = {'scheduled_session_id': session_id, 'sort': 'last_name'}
+        if include:
+            fallback_params['include'] = include
         people = self._get_all_paginated(
             f'events/{event_id}/people',
-            params={'scheduled_session_id': session_id, 'sort': 'last_name'},
+            params=fallback_params,
             version_accept='application/vnd.eventmobi+json; version=4',
             limit=500
         )
