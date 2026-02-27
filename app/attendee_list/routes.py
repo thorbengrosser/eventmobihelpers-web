@@ -7,8 +7,10 @@ from .services import (
     fetch_sessions,
     fetch_session_attendees,
     fetch_session_detail,
+    fetch_people_groups,
     get_available_columns,
     get_cell_value,
+    sort_attendees,
 )
 from datetime import datetime
 from app.utils import get_api_client
@@ -69,6 +71,18 @@ def _parse_columns(available_keys: set) -> list:
     return [(k, labels.get(k, k)) for k in valid]
 
 
+def _parse_group_filter() -> set:
+    """Parse group IDs to show in groups column. Empty = show all groups."""
+    # Support both groups_filter=id1,id2 and gf=id1&gf=id2 (from form)
+    gf_list = request.args.getlist('gf')
+    if gf_list:
+        return {gid.strip() for gid in gf_list if gid and str(gid).strip()}
+    raw = request.args.get('groups_filter', '')
+    if not raw or not raw.strip():
+        return set()
+    return {gid.strip() for gid in raw.split(',') if gid.strip()}
+
+
 @attendee_list.route('/list')
 @login_required
 def list_attendees():
@@ -82,6 +96,18 @@ def list_attendees():
     columns = _parse_columns({k for k, _ in available_columns})
     selected_column_keys = {k for k, _ in columns}
     columns_param = ','.join(k for k, _ in columns)
+    group_filter = _parse_group_filter()
+    groups = fetch_people_groups()
+    sort_column = request.args.get('sort_column') or ''
+    sort_direction = request.args.get('sort_direction', 'asc')
+    if sort_column and sort_column in {k for k, _ in get_available_columns()}:
+        attendees = sort_attendees(attendees, sort_column, sort_direction, group_filter)
+    groups_filter_param = ','.join(group_filter) if group_filter else ''
+    available_column_keys_for_sort = {k for k, _ in get_available_columns()}
+
+    def _get_cell(a, key):
+        return get_cell_value(a, key, group_filter=group_filter if key == 'groups' else None)
+
     return render_template(
         'attendee_list/list.html',
         attendees=attendees,
@@ -91,7 +117,13 @@ def list_attendees():
         available_columns=available_columns,
         selected_column_keys=selected_column_keys,
         columns_param=columns_param,
-        get_cell_value=get_cell_value,
+        groups=groups,
+        group_filter=group_filter,
+        groups_filter_param=groups_filter_param,
+        sort_column=sort_column,
+        sort_direction=sort_direction,
+        available_column_keys_for_sort=available_column_keys_for_sort,
+        get_cell_value=_get_cell,
     )
 
 
@@ -104,9 +136,18 @@ def print_attendees():
     if not session_id:
         return redirect(url_for('attendee_list.select_session'))
     attendees = fetch_session_attendees(session_id)
+    group_filter = _parse_group_filter()
+    sort_column = request.args.get('sort_column') or ''
+    sort_direction = request.args.get('sort_direction', 'asc')
+    if sort_column:
+        attendees = sort_attendees(attendees, sort_column, sort_direction, group_filter)
     sess = fetch_session_detail(session_id)
     available_columns = get_available_columns()
     columns = _parse_columns({k for k, _ in available_columns})
+
+    def _get_cell(a, key):
+        return get_cell_value(a, key, group_filter=group_filter if key == 'groups' else None)
+
     return render_template(
         'attendee_list/print.html',
         attendees=attendees,
@@ -116,7 +157,7 @@ def print_attendees():
         start_dt=sess.get('start_datetime') or sess.get('start_time') or '',
         end_dt=sess.get('end_datetime') or sess.get('end_time') or '',
         columns=columns,
-        get_cell_value=get_cell_value,
+        get_cell_value=_get_cell,
     )
 
 @attendee_list.route('/debug')

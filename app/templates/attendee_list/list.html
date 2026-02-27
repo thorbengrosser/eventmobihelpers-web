@@ -7,25 +7,47 @@
     <span class="font-semibold">Attendee List</span>
   </div>
   <div class="p-6">
-    <div class="mb-4 flex flex-wrap items-center gap-4">
-        <a href="{{ url_for('attendee_list.print_attendees', session_id=session_id, columns=columns_param) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <i class="fas fa-print"></i>
-        Open Printable Version
-      </a>
-      <form method="get" action="{{ url_for('attendee_list.list_attendees') }}" class="flex flex-wrap items-center gap-2" id="columnForm">
-        <input type="hidden" name="session_id" value="{{ session_id }}">
-        <span class="text-sm text-gray-600">Columns:</span>
-        <div class="flex flex-wrap gap-2">
-          {% for key, label in available_columns %}
+    <div class="mb-4 space-y-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="{{ url_for('attendee_list.print_attendees', session_id=session_id, columns=columns_param, groups_filter=groups_filter_param, sort_column=sort_column, sort_direction=sort_direction) }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <i class="fas fa-print"></i>
+          Open Printable Version
+        </a>
+        <form method="get" action="{{ url_for('attendee_list.list_attendees') }}" class="flex flex-wrap items-center gap-2" id="columnForm">
+          <input type="hidden" name="session_id" value="{{ session_id }}">
+          <span class="text-sm text-gray-600">Columns:</span>
+          <div class="flex flex-wrap gap-2">
+            {% for key, label in available_columns %}
+            <label class="inline-flex items-center gap-1.5 text-sm">
+              <input type="checkbox" name="col" value="{{ key }}" class="w-4 h-4 text-blue-600 rounded column-cb"
+                {% if key in selected_column_keys %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <button type="submit" class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+        </form>
+      </div>
+      {% if groups %}
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-gray-600">Groups column shows only:</span>
+        <form method="get" action="{{ url_for('attendee_list.list_attendees') }}" id="groupFilterForm" class="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="session_id" value="{{ session_id }}">
+          <input type="hidden" name="columns" value="{{ columns_param }}">
+          <input type="hidden" name="sort_column" value="{{ sort_column }}">
+          <input type="hidden" name="sort_direction" value="{{ sort_direction }}">
+          {% for g in groups %}
           <label class="inline-flex items-center gap-1.5 text-sm">
-            <input type="checkbox" name="col" value="{{ key }}" class="w-4 h-4 text-blue-600 rounded column-cb"
-              {% if key in selected_column_keys %}checked{% endif %}>
-            <span>{{ label }}</span>
+            <input type="checkbox" name="gf" value="{{ g.id }}" class="w-4 h-4 text-blue-600 rounded group-filter-cb"
+              {% if g.id|string in group_filter %}checked{% endif %}>
+            <span>{{ g.name }}</span>
           </label>
           {% endfor %}
-        </div>
-        <button type="submit" class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
-      </form>
+          <button type="submit" class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Filter groups</button>
+        </form>
+        <span class="text-xs text-gray-500">(Leave all unchecked to show all groups)</span>
+      </div>
+      {% endif %}
     </div>
     {% if attendees %}
     <div class="overflow-x-auto">
@@ -33,7 +55,12 @@
         <thead>
           <tr class="text-left text-gray-500">
             {% for key, label in columns %}
-            <th class="py-2 pr-4">{{ label }}</th>
+            <th class="py-2 pr-4 {% if key in available_column_keys_for_sort %}cursor-pointer hover:bg-gray-50{% endif %}" {% if key in available_column_keys_for_sort %}data-sort-key="{{ key }}"{% endif %}>
+              <span>{{ label }}</span>
+              {% if sort_column == key %}
+              <span class="ml-1 text-blue-600">{{ sort_direction == 'asc' and '↑' or '↓' }}</span>
+              {% endif %}
+            </th>
             {% endfor %}
             <th class="py-2 pr-4">Checked</th>
           </tr>
@@ -57,16 +84,40 @@
 </div>
 <script>
 (function() {
-  const form = document.getElementById('columnForm');
-  if (!form) return;
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const checked = Array.from(form.querySelectorAll('.column-cb:checked')).map(cb => cb.value);
-    const cols = checked.length ? checked.join(',') : 'name,company,email';
-    const url = new URL(form.action);
-    url.searchParams.set('session_id', '{{ session_id }}');
-    url.searchParams.set('columns', cols);
-    window.location.href = url.toString();
+  const columnForm = document.getElementById('columnForm');
+  if (columnForm) {
+    columnForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const checked = Array.from(columnForm.querySelectorAll('.column-cb:checked')).map(cb => cb.value);
+      const cols = checked.length ? checked.join(',') : 'name,company,email';
+      const url = new URL(columnForm.action);
+      url.searchParams.set('session_id', '{{ session_id }}');
+      url.searchParams.set('columns', cols);
+      const gfForm = document.getElementById('groupFilterForm');
+      if (gfForm) {
+        const gfChecked = Array.from(gfForm.querySelectorAll('.group-filter-cb:checked')).map(cb => cb.value);
+        if (gfChecked.length) url.searchParams.set('groups_filter', gfChecked.join(','));
+      }
+      const sortCol = '{{ sort_column }}';
+      if (sortCol) {
+        url.searchParams.set('sort_column', sortCol);
+        url.searchParams.set('sort_direction', '{{ sort_direction }}');
+      }
+      window.location.href = url.toString();
+    });
+  }
+  // Sortable column headers
+  document.querySelectorAll('th[data-sort-key]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      const key = th.dataset.sortKey;
+      const currentSort = '{{ sort_column }}';
+      const currentDir = '{{ sort_direction }}';
+      const newDir = (currentSort === key && currentDir === 'asc') ? 'desc' : 'asc';
+      const url = new URL(window.location.href);
+      url.searchParams.set('sort_column', key);
+      url.searchParams.set('sort_direction', newDir);
+      window.location.href = url.toString();
+    });
   });
 })();
 </script>

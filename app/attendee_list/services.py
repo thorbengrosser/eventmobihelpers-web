@@ -9,6 +9,7 @@ STANDARD_COLUMNS: List[Tuple[str, str]] = [
     ('last_name', 'Last Name'),
     ('email', 'Email'),
     ('company', 'Company'),
+    ('groups', 'Groups'),
     ('title', 'Title'),
     ('pronouns', 'Pronouns'),
     ('about', 'About'),
@@ -48,6 +49,18 @@ def fetch_session_detail(session_id: str) -> Dict:
     return {}
 
 
+def fetch_people_groups() -> List[Dict]:
+    """Fetch people groups for the current event."""
+    client = get_api_client()
+    event_id = session.get('event_id')
+    if not client or not event_id:
+        return []
+    try:
+        return client.list_people_groups(event_id) or []
+    except Exception:
+        return []
+
+
 def fetch_people_custom_fields() -> List[Dict]:
     """Fetch people custom field definitions for the current event."""
     client = get_api_client()
@@ -78,8 +91,9 @@ def _format_datetime(val: Any) -> str:
     return s
 
 
-def get_cell_value(attendee: Dict, column_key: str) -> Any:
-    """Get the display value for a column from an attendee."""
+def get_cell_value(attendee: Dict, column_key: str, group_filter: set = None) -> Any:
+    """Get the display value for a column from an attendee.
+    group_filter: if set, only show group names whose id is in this set (for groups column)."""
     if column_key == 'name':
         return (
             attendee.get('name')
@@ -92,6 +106,17 @@ def get_cell_value(attendee: Dict, column_key: str) -> Any:
         return attendee.get('email') or attendee.get('work_email') or attendee.get('personal_email') or ''
     if column_key == 'title':
         return attendee.get('title') or attendee.get('job_title') or ''
+    if column_key == 'groups':
+        groups = attendee.get('groups') or []
+        names = []
+        for g in groups:
+            gid = g.get('id') or g.get('external_id')
+            gname = g.get('name') or str(gid or '')
+            if group_filter is None or not group_filter:
+                names.append(gname)
+            elif gid and str(gid) in group_filter:
+                names.append(gname)
+        return ', '.join(n for n in names if n)
     if column_key.startswith('custom_field:'):
         field_id = column_key.split(':', 1)[1]
         for cf in attendee.get('custom_fields') or []:
@@ -111,12 +136,17 @@ def get_cell_value(attendee: Dict, column_key: str) -> Any:
     return val
 
 
-def fetch_session_attendees(session_id: str, include_custom_fields: bool = True) -> List[Dict]:
+def fetch_session_attendees(session_id: str, include_custom_fields: bool = True, include_groups: bool = True) -> List[Dict]:
     client = get_api_client()
     event_id = session.get('event_id')
     if not client or not event_id or not session_id:
         return []
-    include = 'custom_fields' if include_custom_fields else None
+    parts = []
+    if include_custom_fields:
+        parts.append('custom_fields')
+    if include_groups:
+        parts.append('groups')
+    include = ','.join(parts) if parts else None
     attendees = client.get_session_attendees(event_id, session_id, include=include) or []
 
     # Flatten JSON:API-style responses (data under 'attributes')
@@ -157,5 +187,20 @@ def fetch_session_attendees(session_id: str, include_custom_fields: bool = True)
         a['company'] = a.get('company') or a.get('company_name') or a.get('organization') or ''
         a['email'] = a.get('email') or a.get('work_email') or a.get('personal_email') or ''
     return unique_attendees
+
+
+def sort_attendees(attendees: List[Dict], sort_column: str, sort_direction: str, group_filter: set = None) -> List[Dict]:
+    """Sort attendees by column. sort_direction: 'asc' or 'desc'."""
+
+    def get_sort_value(a: Dict, col: str):
+        v = get_cell_value(a, col, group_filter=group_filter)
+        if v is None:
+            return ''
+        return str(v).lower()
+
+    if not sort_column:
+        return attendees
+    reverse = sort_direction == 'desc'
+    return sorted(attendees, key=lambda x: get_sort_value(x, sort_column), reverse=reverse)
 
 
