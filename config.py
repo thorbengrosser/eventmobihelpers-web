@@ -6,6 +6,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     PERMANENT_SESSION_LIFETIME = timedelta(days=1)
+    # Session cookie: ensure it works on remote (HTTPS, different domains)
+    SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
     EVENTMOBI_API_KEY = os.environ.get('EVENTMOBI_API_KEY')
     EVENTMOBI_API_URL = os.environ.get('EVENTMOBI_API_URL') or 'https://api.eventmobi.com'
     API_KEY_EXPIRATION = timedelta(hours=1)

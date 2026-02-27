@@ -119,6 +119,17 @@ def fetch_session_attendees(session_id: str, include_custom_fields: bool = True)
     include = 'custom_fields' if include_custom_fields else None
     attendees = client.get_session_attendees(event_id, session_id, include=include) or []
 
+    # Flatten JSON:API-style responses (data under 'attributes')
+    def _flatten(obj):
+        if isinstance(obj, dict) and 'attributes' in obj and isinstance(obj['attributes'], dict):
+            out = dict(obj)
+            out.update(obj['attributes'])
+            del out['attributes']
+            return out
+        return obj
+
+    attendees = [_flatten(a) for a in attendees]
+
     # Deduplicate attendees because the API may return the same page multiple times when pagination is ignored
     unique_attendees = []
     seen_keys = set()

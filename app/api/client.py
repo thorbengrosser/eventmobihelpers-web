@@ -325,52 +325,24 @@ class EventMobiClient:
             return []
 
     def get_session_attendees(self, event_id, session_id, include=None):
-        """Fetch attendees for a session using dedicated endpoints first, then fall back to filters.
-        Optional include: e.g. 'custom_fields' to fetch custom field values (see People API include param)."""
-        try:
-            headers = dict(self.headers)
-            headers['Accept'] = 'application/vnd.eventmobi+json; version=4'
-            params = {'limit': 500, 'page': 0}
-            if include:
-                params['include'] = include
-            url = f"{self.BASE_URL}/events/{event_id}/sessions/{session_id}/people"
-
-            results = []
-            while True:
-                resp = requests.get(url, headers=headers, params=params, timeout=10)
-                resp.raise_for_status()
-                body = resp.json()
-                page_items = body.get('data') if isinstance(body, dict) else body
-                if not isinstance(page_items, list) or not page_items:
-                    break
-                results.extend(page_items)
-
-                meta = body.get('meta') if isinstance(body, dict) else {}
-                pagination = meta.get('pagination') if isinstance(meta, dict) else {}
-                next_page = pagination.get('next_page_number')
-                if next_page is None:
-                    break
-                params['page'] = next_page
-
-            if results:
-                return results
-        except requests.RequestException as e:
-            current_app.logger.warning(f"sessions/{session_id}/people endpoint failed: {e}")
-
-        # Fallback: use people endpoint with scheduled_session_id filter (v4)
-        fallback_params = {'scheduled_session_id': session_id, 'sort': 'last_name'}
+        """Fetch attendees for a session. Prefers people endpoint with scheduled_session_id filter
+        because it returns full People objects (first_name, last_name, email, company_name, etc.).
+        The sessions/{id}/people endpoint may return minimal data on some setups.
+        Optional include: e.g. 'custom_fields' to fetch custom field values."""
+        # Prefer people endpoint: returns full People objects per People API (swagger PeopleListEnvelopePublic)
+        params = {'scheduled_session_id': session_id, 'sort': 'last_name'}
         if include:
-            fallback_params['include'] = include
+            params['include'] = include
         people = self._get_all_paginated(
             f'events/{event_id}/people',
-            params=fallback_params,
+            params=params,
             version_accept='application/vnd.eventmobi+json; version=4',
             limit=500
         )
         if isinstance(people, list) and people:
             return people
 
-        # Final fallback: single request without pagination helper
+        # Fallback: single request without pagination helper
         response = self._make_request('GET', f'events/{event_id}/people', params={'scheduled_session_id': session_id})
         return response.get('data', []) if isinstance(response, dict) else []
 
