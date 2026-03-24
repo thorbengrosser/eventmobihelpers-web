@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced People Uploader – Step 2: Field Mapping{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <div class="mb-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Step 2 of 5</div>
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Field Mapping</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name or '—' }}</p>
+
+  <p class="text-sm text-gray-600 mb-4">
+    For each column in your Excel file, choose the corresponding EventMobi field — or leave it as
+    <em>Ignore</em> to skip that column. Then select how to identify people in EventMobi.
+  </p>
+
+  <form method="POST" class="space-y-6">
+    {{ form.hidden_tag() }}
+
+    <!-- Column mapping table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border border-gray-200 rounded-md">
+        <thead>
+          <tr class="bg-gray-50 text-left">
+            <th class="px-4 py-2 font-medium text-gray-700 border-b border-gray-200 w-1/3">Excel Column</th>
+            <th class="px-4 py-2 font-medium text-gray-700 border-b border-gray-200 w-1/3">Sample Values</th>
+            <th class="px-4 py-2 font-medium text-gray-700 border-b border-gray-200 w-1/3">Map to EventMobi Field</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for col in headers %}
+          <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="px-4 py-2 font-medium text-gray-800">{{ col }}</td>
+            <td class="px-4 py-2 text-gray-500">
+              {% set col_samples = samples.get(col, []) %}
+              {% if col_samples %}
+                {% for s in col_samples %}
+                  <span class="inline-block bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded mr-1">{{ s[:40] }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="text-gray-300">—</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2">
+              <select name="col_map_{{ loop.index0 }}"
+                      class="w-full px-2 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {% for value, label in em_fields %}
+                  {% if value == "__separator__" %}
+                    <option value="" disabled>{{ label }}</option>
+                  {% else %}
+                    <option value="{{ value }}"
+                      {% if submitted_mapping.get(col) == value %}selected{% endif %}>
+                      {{ label }}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Match field selection -->
+    <div class="p-4 bg-gray-50 border border-gray-200 rounded-md">
+      <p class="text-sm font-medium text-gray-700 mb-3">{{ form.match_field.label.text }}</p>
+      <div class="space-y-2">
+        {% for subfield in form.match_field %}
+        <label class="flex items-start gap-2 cursor-pointer">
+          {{ subfield(class="mt-0.5") }}
+          <span class="text-sm text-gray-700">
+            {{ subfield.label.text }}
+            {% if 'Name' in subfield.label.text and 'First' in subfield.label.text %}
+              <span id="name-match-badge" class="ml-2 hidden inline-flex items-center gap-1 text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">
+                <i class="fas fa-exclamation-triangle"></i> May match wrong person
+              </span>
+            {% endif %}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+      {% for error in form.match_field.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+      {% endfor %}
+
+      <!-- Name-match warning (shown via JS) -->
+      <div id="name-match-warning" class="hidden mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-md text-sm text-yellow-800">
+        <i class="fas fa-exclamation-triangle mr-1"></i>
+        <strong>Warning:</strong> Matching by first and last name can pick the wrong person if duplicate
+        names exist in your event. Use email or EventMobi ID for reliable matching.
+      </div>
+    </div>
+
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        <i class="fas fa-arrow-right"></i>
+        Continue
+      </button>
+      <a href="{{ url_for('people_uploader.step_upload') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        <i class="fas fa-arrow-left"></i>
+        Back
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function () {
+    const radios = document.querySelectorAll('input[name="match_field"]');
+    const warning = document.getElementById('name-match-warning');
+    const badge = document.getElementById('name-match-badge');
+
+    function updateWarning() {
+      const selected = document.querySelector('input[name="match_field"]:checked');
+      const isName = selected && selected.value === 'first_last_name';
+      if (warning) warning.classList.toggle('hidden', !isName);
+      if (badge) badge.classList.toggle('hidden', !isName);
+    }
+
+    radios.forEach(r => r.addEventListener('change', updateWarning));
+    updateWarning();
+  })();
+</script>
+{% endblock %}

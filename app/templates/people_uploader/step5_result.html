@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced People Uploader – Upload Complete{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <div class="mb-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Step 5 of 5</div>
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Upload Complete</h2>
+  <p class="text-gray-500 mb-4">Event: {{ event_name or '—' }}</p>
+
+  <!-- Summary stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="p-4 bg-blue-50 border border-blue-200 rounded-md text-center">
+      <p class="text-2xl font-bold text-blue-700">{{ updated }}</p>
+      <p class="text-xs text-blue-600 font-medium mt-1">Updated</p>
+    </div>
+    <div class="p-4 bg-green-50 border border-green-200 rounded-md text-center">
+      <p class="text-2xl font-bold text-green-700">{{ created }}</p>
+      <p class="text-xs text-green-600 font-medium mt-1">Created</p>
+    </div>
+    <div class="p-4 bg-gray-50 border border-gray-200 rounded-md text-center">
+      <p class="text-2xl font-bold text-gray-600">{{ skipped }}</p>
+      <p class="text-xs text-gray-500 font-medium mt-1">Skipped</p>
+    </div>
+    <div class="p-4 {% if errors > 0 %}bg-red-50 border-red-200{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-md text-center">
+      <p class="text-2xl font-bold {% if errors > 0 %}text-red-700{% else %}text-gray-400{% endif %}">{{ errors }}</p>
+      <p class="text-xs {% if errors > 0 %}text-red-600{% else %}text-gray-400{% endif %} font-medium mt-1">Errors</p>
+    </div>
+  </div>
+
+  <!-- Results table -->
+  <div class="overflow-x-auto mb-6">
+    <table class="w-full text-sm border border-gray-200 rounded-md">
+      <thead>
+        <tr class="bg-gray-50 text-left">
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Row #</th>
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Match Value</th>
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Action</th>
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Person ID</th>
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Status</th>
+          <th class="px-3 py-2 font-medium text-gray-700 border-b border-gray-200">Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr class="border-b border-gray-100 hover:bg-gray-50 {% if not r.success and r.action != 'skip' %}bg-red-50{% endif %}">
+          <td class="px-3 py-2 text-gray-500">{{ r.row_num }}</td>
+          <td class="px-3 py-2 font-mono text-xs text-gray-800">{{ r.match_value or '—' }}</td>
+          <td class="px-3 py-2">
+            {% if r.action == 'update' %}
+              <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                <i class="fas fa-pen"></i> Update
+              </span>
+            {% elif r.action == 'create' %}
+              <span class="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                <i class="fas fa-plus"></i> Create
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                <i class="fas fa-minus"></i> Skip
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-3 py-2 font-mono text-xs text-gray-500">{{ r.person_id or '—' }}</td>
+          <td class="px-3 py-2">
+            {% if r.success %}
+              <span class="inline-flex items-center gap-1 text-xs text-green-700">
+                <i class="fas fa-check-circle"></i> {{ r.status }}
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1 text-xs text-red-700">
+                <i class="fas fa-times-circle"></i> {{ r.status }}
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-3 py-2 text-xs text-red-600">{{ r.error or '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <a href="{{ url_for('people_uploader.result_export') }}"
+       class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+      <i class="fas fa-download"></i>
+      Download Results CSV
+    </a>
+    <a href="{{ url_for('people_uploader.step_upload') }}"
+       class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+      <i class="fas fa-redo"></i>
+      New Upload
+    </a>
+    <a href="{{ url_for('main.index') }}"
+       class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+      <i class="fas fa-home"></i>
+      Home
+    </a>
+  </div>
+</div>
+{% endblock %}

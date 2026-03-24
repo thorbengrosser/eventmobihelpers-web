@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced People Uploader – Step 3: Missing Records{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <div class="mb-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Step 3 of 5</div>
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Missing Record Handling</h2>
+  <p class="text-gray-500 mb-6">Event: {{ event_name or '—' }}</p>
+
+  <div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-700">
+    Match strategy: <strong>{{ match_field_label }}</strong>
+  </div>
+
+  <p class="text-sm text-gray-600 mb-4">
+    What should happen when a row in your Excel file does not match any person in EventMobi?
+  </p>
+
+  <form method="POST" class="space-y-5">
+    {{ form.hidden_tag() }}
+
+    <div class="space-y-3">
+      {% for subfield in form.missing_action %}
+      <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-400 has-[:checked]:bg-blue-50">
+        {{ subfield(class="mt-0.5") }}
+        <span class="text-sm">
+          {% if subfield.data == 'skip' %}
+            <span class="font-medium text-gray-800">Skip</span>
+            <span class="block text-gray-500">The row will be recorded as skipped in the results. No changes are made.</span>
+          {% elif subfield.data == 'create' %}
+            <span class="font-medium text-gray-800">Create new person</span>
+            <span class="block text-gray-500">A new person will be created in EventMobi using the mapped fields.</span>
+            {% if not can_create %}
+              <span class="block mt-1 text-yellow-700 text-xs">
+                <i class="fas fa-exclamation-triangle"></i>
+                Requires <strong>First Name</strong> and <strong>Last Name</strong> to be mapped.
+                Go back to step 2 to map those columns if you want to use this option.
+              </span>
+            {% endif %}
+          {% endif %}
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+
+    {% for error in form.missing_action.errors %}
+      <p class="text-sm text-red-600">{{ error }}</p>
+    {% endfor %}
+
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        <i class="fas fa-eye"></i>
+        Preview
+      </button>
+      <a href="{{ url_for('people_uploader.step_mapping') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        <i class="fas fa-arrow-left"></i>
+        Back
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

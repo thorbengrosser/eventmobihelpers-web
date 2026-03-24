@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced People Uploader – Step 1: Upload{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow border border-gray-100">
+  <div class="mb-1 text-xs font-medium text-gray-400 uppercase tracking-wide">Step 1 of 5</div>
+  <h2 class="text-2xl font-semibold text-gray-900 mb-1">Advanced People List Uploader</h2>
+  <p class="text-gray-500 mb-6">Event: {{ event_name or '—' }}</p>
+
+  <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+    <p class="font-medium mb-1">Upload any Excel spreadsheet (.xlsx)</p>
+    <ul class="list-disc pl-5 space-y-1">
+      <li>Your file can have any column names — you will map them to EventMobi fields in the next step.</li>
+      <li>Row 1 must be the header row.</li>
+      <li>Only <strong>.xlsx</strong> files are supported (not .xls or .csv).</li>
+    </ul>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-5">
+    {{ form.hidden_tag() }}
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ form.file.id }}">
+        {{ form.file.label.text }}
+      </label>
+      {{ form.file(class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-200 rounded-md p-1") }}
+      {% for error in form.file.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="pt-2 flex items-center gap-2">
+      <button type="submit" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+        <i class="fas fa-arrow-right"></i>
+        Upload and Continue
+      </button>
+      <a href="{{ url_for('main.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white text-gray-800 hover:bg-gray-50">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

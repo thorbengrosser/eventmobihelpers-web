@@ -12,6 +12,7 @@ from .add_attendee_to_session import add_attendee_to_session
 from .attendee_list import attendee_list
 from .attendee_browser import attendee_browser
 from .batch_editor import batch_editor
+from .people_uploader import people_uploader
 import logging
 import os
 from config import config
@@ -69,6 +70,7 @@ def create_app(config_name='default'):
     app.register_blueprint(attendee_list, url_prefix='/attendee_list')
     app.register_blueprint(attendee_browser, url_prefix='/attendee_browser')
     app.register_blueprint(batch_editor, url_prefix='/batch_editor')
+    app.register_blueprint(people_uploader, url_prefix='/people_uploader')
 
     # Create database tables and initial admin user
     with app.app_context():
