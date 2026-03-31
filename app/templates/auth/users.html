@@ -31,9 +31,13 @@
                                         <span class="badge bg-secondary">User</span>
                                         {% endif %}
                                     </td>
-                                    <td>
+                                    <td style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                        <a href="{{ url_for('auth.reset_password', user_id=user.id) }}"
+                                           class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-key"></i> Reset Password
+                                        </a>
                                         {% if user.id != current_user.id %}
-                                        <a href="{{ url_for('auth.delete_user', id=user.id) }}" 
+                                        <a href="{{ url_for('auth.delete_user', id=user.id) }}"
                                            class="btn btn-danger btn-sm"
                                            onclick="return confirm('Are you sure you want to delete this user?')">
                                             Delete

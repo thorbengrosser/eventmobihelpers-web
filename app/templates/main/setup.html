@@ -20,6 +20,10 @@
                                 {% endfor %}
                             {% endif %}
                         </div>
+                        <div class="form-group mt-3" style="display:flex; align-items:center; gap:0.5rem;">
+                            <input type="checkbox" name="remember_key" id="remember_key" value="1">
+                            <label for="remember_key" style="margin:0; font-size:0.875rem;">Remember API key for future sessions</label>
+                        </div>
                         <div class="text-center mt-3">
                             {{ form.submit(class="btn btn-primary") }}
                         </div>

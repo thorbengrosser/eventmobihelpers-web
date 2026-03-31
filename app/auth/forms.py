@@ -30,4 +30,16 @@ class CreateUserForm(FlaskForm):
             username.data = username.data.strip()
             user = User.query.filter_by(username=username.data).first()
             if user is not None:
-                raise ValidationError('Please use a different username.') 
+                raise ValidationError('Please use a different username.')
+
+
+class ResetPasswordForm(FlaskForm):
+    new_password = PasswordField('New Password', validators=[
+        DataRequired(message='Password is required'),
+        Length(min=8, message='Password must be at least 8 characters long')
+    ])
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        DataRequired(message='Please confirm your password'),
+        EqualTo('new_password', message='Passwords must match')
+    ])
+    submit = SubmitField('Reset Password') 

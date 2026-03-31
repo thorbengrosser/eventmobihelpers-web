@@ -9,7 +9,13 @@
 </div>
 
 <div class="card-grid">
-    <!-- Batch Editor (Unified) -->
+
+    <!-- ── Batch Operations ───────────────────────────────────── -->
+    <div style="grid-column: 1 / -1; margin-bottom: -0.25rem;">
+        <p style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin: 0 0 0.4rem 0;">Batch Operations</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0;">
+    </div>
+
     <div class="card">
         <div class="card-header">
             <i class="fas fa-tasks"></i>
@@ -24,17 +30,38 @@
         </div>
     </div>
 
-    <!-- Advanced Session Editor -->
+    <!-- ── People ─────────────────────────────────────────────── -->
+    <div style="grid-column: 1 / -1; margin-bottom: -0.25rem;">
+        <p style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin: 0 0 0.4rem 0;">People</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0;">
+    </div>
+
+    <!-- Advanced People List Uploader -->
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-edit"></i>
-            <h2 class="card-title">Advanced Session Editor</h2>
+            <i class="fas fa-file-upload"></i>
+            <h2 class="card-title">Advanced People List Uploader</h2>
         </div>
         <div class="card-body">
-            <p class="card-description">Edit session details and settings, including cross-day start and end times.</p>
-            <a href="{{ url_for('expert_session_editor.select_session') }}" class="btn btn-primary">
+            <p class="card-description">Upload any Excel spreadsheet and map columns to EventMobi people fields. Match on email, ID, or name. Create or skip missing records.</p>
+            <a href="{{ url_for('people_uploader.step_upload') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
-                Open Editor
+                Upload People
+            </a>
+        </div>
+    </div>
+
+    <!-- Advanced Attendee Browser -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-search"></i>
+            <h2 class="card-title">Advanced Attendee Browser</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Browse all attendees with sorting, filtering, and pagination capabilities.</p>
+            <a href="{{ url_for('attendee_browser.browse_attendees') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Browse Attendees
             </a>
         </div>
     </div>
@@ -54,21 +81,7 @@
         </div>
     </div>
 
-    <!-- Delete People by E-Mail -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-user-minus"></i>
-            <h2 class="card-title">Delete People by E-Mail</h2>
-        </div>
-        <div class="card-body">
-            <p class="card-description">Permanently remove people from the event by entering their email addresses.</p>
-            <a href="{{ url_for('delete_people_by_email.delete_people') }}" class="btn btn-primary">
-                <i class="fas fa-arrow-right"></i>
-                Delete People
-            </a>
-        </div>
-    </div>
-
+    <!-- Edit Attendee Settings by Group -->
     <div class="card">
         <div class="card-header">
             <i class="fas fa-users-cog"></i>
@@ -79,6 +92,45 @@
             <a href="{{ url_for('manage_attendee_settings.select_group') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
                 Edit Settings
+            </a>
+        </div>
+    </div>
+
+    <!-- Delete People by E-Mail — destructive -->
+    <div class="card" style="border-left: 3px solid #ef4444;">
+        <div class="card-header" style="justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fas fa-user-minus"></i>
+                <h2 class="card-title" style="margin:0;">Delete People by E-Mail</h2>
+            </div>
+            <span style="font-size:0.65rem; color:#ef4444; white-space:nowrap;"><i class="fas fa-exclamation-triangle"></i> Destructive</span>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Permanently remove people from the event by entering their email addresses.</p>
+            <a href="{{ url_for('delete_people_by_email.delete_people') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Delete People
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Sessions ───────────────────────────────────────────── -->
+    <div style="grid-column: 1 / -1; margin-bottom: -0.25rem;">
+        <p style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin: 0 0 0.4rem 0;">Sessions</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 0;">
+    </div>
+
+    <!-- Advanced Session Editor -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-edit"></i>
+            <h2 class="card-title">Advanced Session Editor</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-description">Edit session details and settings, including cross-day start and end times.</p>
+            <a href="{{ url_for('expert_session_editor.select_session') }}" class="btn btn-primary">
+                <i class="fas fa-arrow-right"></i>
+                Open Editor
             </a>
         </div>
     </div>
@@ -113,26 +165,14 @@
         </div>
     </div>
 
-    <!-- Advanced Attendee Browser -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-search"></i>
-            <h2 class="card-title">Advanced Attendee Browser</h2>
-        </div>
-        <div class="card-body">
-            <p class="card-description">Browse all attendees with sorting, filtering, and pagination capabilities.</p>
-            <a href="{{ url_for('attendee_browser.browse_attendees') }}" class="btn btn-primary">
-                <i class="fas fa-arrow-right"></i>
-                Browse Attendees
-            </a>
-        </div>
-    </div>
-
-    <!-- Session Management -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-trash-alt"></i>
-            <h2 class="card-title">Delete Sessions by Track</h2>
+    <!-- Delete Sessions by Track — destructive -->
+    <div class="card" style="border-left: 3px solid #ef4444;">
+        <div class="card-header" style="justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fas fa-trash-alt"></i>
+                <h2 class="card-title" style="margin:0;">Delete Sessions by Track</h2>
+            </div>
+            <span style="font-size:0.65rem; color:#ef4444; white-space:nowrap;"><i class="fas fa-exclamation-triangle"></i> Destructive</span>
         </div>
         <div class="card-body">
             <p class="card-description">Select a track to remove all sessions in bulk.</p>
@@ -143,10 +183,14 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-times"></i>
-            <h2 class="card-title">Delete Sessions by ID</h2>
+    <!-- Delete Sessions by ID — destructive -->
+    <div class="card" style="border-left: 3px solid #ef4444;">
+        <div class="card-header" style="justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fas fa-times"></i>
+                <h2 class="card-title" style="margin:0;">Delete Sessions by ID</h2>
+            </div>
+            <span style="font-size:0.65rem; color:#ef4444; white-space:nowrap;"><i class="fas fa-exclamation-triangle"></i> Destructive</span>
         </div>
         <div class="card-body">
             <p class="card-description">Enter a list of session IDs to delete those sessions in one action.</p>
@@ -156,5 +200,6 @@
             </a>
         </div>
     </div>
+
 </div>
 {% endblock %}

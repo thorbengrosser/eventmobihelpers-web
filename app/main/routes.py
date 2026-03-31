@@ -1,4 +1,4 @@
-from flask import render_template, send_from_directory, redirect, url_for, session, flash, current_app, jsonify
+from flask import render_template, send_from_directory, redirect, url_for, session, flash, current_app, jsonify, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SubmitField
 from wtforms.validators import DataRequired
@@ -7,6 +7,7 @@ from app.utils import (
     get_api_client, store_event_data, get_event_data
 )
 from app.api.client import EventMobiClient
+from app.extensions import db
 from flask_login import current_user, login_required
 from . import main
 
@@ -49,6 +50,9 @@ def setup_api_key():
         api_key = form.api_key.data
         if validate_api_key(api_key):
             store_api_key(api_key)
+            if request.form.get('remember_key'):
+                current_user.save_api_key(api_key, current_app.secret_key)
+                db.session.commit()
             return redirect(url_for('main.select_event'))
         else:
             flash('Invalid API key. Please try again.', 'error')
@@ -103,6 +107,8 @@ def change_event():
 @login_required
 def change_api_key():
     clear_session_data()
+    current_user.clear_api_key()
+    db.session.commit()
     return redirect(url_for('main.setup_api_key'))
 
 @main.route('/api/events')
